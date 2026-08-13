@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>माहिती संकलन सनियंत्रण फलक</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a2332;
+    --paper:#f4f2ec;
+    --card:#ffffff;
+    --rule:#d8d3c4;
+    --navy:#22344a;
+    --navy-deep:#16232f;
+    --brass:#a97142;
+    --brass-light:#c98a53;
+    --ok:#3f7a5c;
+    --ok-bg:#e7f1eb;
+    --pend:#b3572e;
+    --pend-bg:#fbeee5;
+    --muted:#6b7280;
+    --shadow: 0 1px 2px rgba(22,35,47,0.06), 0 8px 24px rgba(22,35,47,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(169,113,66,0.08), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .mono{font-family:'Space Mono',monospace;}
+
+  header.top{
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color:#f3efe4;
+    padding:28px 24px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"";
+    position:absolute; right:-40px; top:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background:radial-gradient(circle, rgba(201,138,83,0.35), transparent 70%);
+  }
+  .top-inner{max-width:1180px; margin:0 auto; position:relative;}
+  
+  /* Header Layout for Logo & Text */
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .logo-box {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Updated Eyebrow for larger text */
+  .eyebrow{
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    color: var(--brass-light); 
+    margin-bottom: 6px;
+  }
+  h1{
+    font-size:clamp(22px,3.4vw,32px);
+    margin:0 0 6px;
+    font-weight:800;
+    letter-spacing:0.2px;
+  }
+  .sub{color:#c7cedb; font-size:14.5px; max-width:640px; line-height:1.5;}
+
+  @media(max-width: 600px) {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+  }
+
+  main{max-width:1180px; margin:0 auto; padding:26px 24px 0;}
+
+  /* Dashboard */
+  .dash-title{
+    display:flex; align-items:baseline; gap:10px; margin:6px 0 14px;
+  }
+  .dash-title .num{font-family:'Space Mono',monospace; color:var(--brass); font-weight:700;}
+  .dash-title h2{font-size:15px; margin:0; text-transform:uppercase; letter-spacing:0.1em; color:var(--navy); font-weight:700;}
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:28px;
+  }
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.cards{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:16px 16px 14px;
+    box-shadow:var(--shadow);
+    position:relative;
+  }
+  .card.overall{background:linear-gradient(135deg, var(--navy), var(--navy-deep)); color:#fff; border-color:var(--navy-deep);}
+  .card .label{font-size:12.5px; color:var(--muted); font-weight:600; margin-bottom:8px; line-height:1.3;}
+  .card.overall .label{color:#c7cedb;}
+  .card .figures{display:flex; align-items:baseline; gap:8px;}
+  .card .figures .big{font-family:'Space Mono',monospace; font-size:28px; font-weight:700;}
+  .card .figures .of{font-size:13px; color:var(--muted);}
+  .card.overall .figures .of{color:#c7cedb;}
+  .bar{height:6px; border-radius:4px; background:var(--rule); margin-top:10px; overflow:hidden;}
+  .card.overall .bar{background:rgba(255,255,255,0.18);}
+  .bar-fill{height:100%; border-radius:4px; background:var(--ok); transition:width .4s ease;}
+  .card.overall .bar-fill{background:var(--brass-light);}
+  .card .pending-tag{
+    position:absolute; top:14px; right:14px;
+    font-size:11px; font-family:'Space Mono',monospace; color:var(--pend);
+    background:var(--pend-bg); padding:2px 8px; border-radius:20px; font-weight:700;
+  }
+  .card.overall .pending-tag{background:rgba(255,255,255,0.15); color:#fbe4d4;}
+
+  /* Toolbar */
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    margin-bottom:14px;
+  }
+  .search{
+    flex:1; min-width:200px;
+    background:var(--card); border:1px solid var(--rule); border-radius:8px;
+    padding:9px 12px; font-size:14px; font-family:inherit; color:var(--ink);
+  }
+  .search:focus{outline:2px solid var(--brass-light); outline-offset:1px;}
+  .filters{display:flex; gap:6px; background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:3px;}
+  .filters button{
+    border:none; background:transparent; padding:7px 13px; border-radius:6px;
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer;
+  }
+  .filters button.active{background:var(--navy); color:#fff;}
+  .filters button:focus-visible{outline:2px solid var(--brass); outline-offset:1px;}
+  
+  .add-btn{
+    background:var(--brass); color:#fff; border:none; border-radius:8px;
+    padding:9px 16px; font-family:inherit; font-weight:700; font-size:13.5px;
+    cursor:pointer; white-space:nowrap;
+  }
+  .add-btn:hover{background:var(--brass-light);}
+  .add-btn:focus-visible{outline:2px solid var(--navy); outline-offset:2px;}
+  
+  .add-col-btn { background: var(--navy); }
+  .add-col-btn:hover { background: var(--navy-deep); }
+
+  .admin-toggle-btn { background: var(--muted); margin-right: auto; }
+  .admin-toggle-btn.unlocked { background: var(--pend); }
+  
+  /* Cloud Sync Status Indicator */
+  .sync-status {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy-deep);
+    background: #e7f1eb;
+    padding: 7px 14px;
+    border-radius: 20px;
+    margin-right: auto;
+    display: none;
+    border: 1px solid var(--ok);
+  }
+  .sync-status.loading {
+    background: #fbeee5;
+    color: var(--pend);
+    border-color: var(--pend);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  /* Security / Admin Mode Hiding */
+  body:not(.admin-mode) .admin-only {
+    display: none !important;
+  }
+
+  /* Table */
+  .table-wrap{
+    background:var(--card); border:1px solid var(--rule); border-radius:10px;
+    overflow:auto; box-shadow:var(--shadow); margin-bottom:20px;
+  }
+  table{width:100%; border-collapse:collapse; font-size:14px; min-width:800px;}
+  thead th{
+    background:#eee9dd; color:var(--navy);
+    text-align:left; padding:11px 12px; font-size:12px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.04em;
+    border-bottom:1px solid var(--rule);
+    white-space:nowrap;
+  }
+  thead th.center, td.center{text-align:center;}
+  tbody tr{border-bottom:1px solid #ece8dc;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:#faf8f2;}
+  td{padding:10px 12px; vertical-align:middle;}
+  .sr{font-family:'Space Mono',monospace; color:var(--muted); font-size:12.5px;}
+  .school-name{font-weight:600; color:var(--ink);}
+  .udise{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px;}
+  .chk-wrap{display:flex; flex-direction:column; align-items:center; gap:2px;}
+  .chk-wrap input[type=checkbox]{
+    width:19px; height:19px; accent-color:var(--ok); cursor:pointer;
+  }
+  /* Style for disabled checkboxes so they look locked */
+  .chk-wrap input[type=checkbox]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    filter: grayscale(100%);
+  }
+  .chk-label{font-size:10px; color:var(--muted); font-family:'Space Mono',monospace;}
+  .status-badge{
+    display:inline-block; padding:4px 10px; border-radius:20px;
+    font-size:11.5px; font-weight:700; font-family:'Space Mono',monospace;
+  }
+  .status-badge.done{background:var(--ok-bg); color:var(--ok);}
+  .status-badge.pending{background:var(--pend-bg); color:var(--pend);}
+  .row-actions button{
+    border:none; background:transparent; cursor:pointer; color:var(--muted); font-size:16px;
+    padding:2px 6px; border-radius:4px;
+  }
+  .row-actions button:hover{color:var(--pend); background:var(--pend-bg);}
+  
+  .del-col-btn {
+    border: none; background: rgba(179, 87, 46, 0.1); color: var(--pend);
+    cursor: pointer; font-size: 10px; border-radius: 4px; padding: 2px 6px;
+    margin-top: 4px; display: inline-block;
+  }
+  .del-col-btn:hover { background: var(--pend); color: #fff; }
+
+  .empty{padding:40px 20px; text-align:center; color:var(--muted); font-size:14px;}
+
+  footer.note{
+    max-width:1180px; margin:0 auto; padding:0 24px 24px; color:var(--muted); font-size:12px; line-height:1.6;
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(22,35,47,0.55);
+    display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .modal{
+    background:var(--card); border-radius:12px; padding:22px; width:100%; max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal h3{margin:0 0 14px; font-size:16px; color:var(--navy);}
+  .modal label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin:12px 0 5px;}
+  .modal input{
+    width:100%; padding:9px 11px; border:1px solid var(--rule); border-radius:7px;
+    font-family:inherit; font-size:14px;
+  }
+  .modal input:focus{outline:2px solid var(--brass-light); outline-offset:1px;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
+  .modal-actions button{
+    border:none; border-radius:7px; padding:9px 16px; font-family:inherit; font-weight:700;
+    font-size:13.5px; cursor:pointer;
+  }
+  .btn-cancel{background:#eee9dd; color:var(--ink);}
+  .btn-save{background:var(--navy); color:#fff;}
+  .err-msg {color: var(--pend); font-size: 12px; margin-top: 5px; display: none;}
+  
+  .del-text { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
+
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="header-content">
+      <!-- Scalable Logo Icon -->
+      <div class="logo-box">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" color="var(--brass-light)">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+        </svg>
+      </div>
+      
+      <!-- Text Information -->
+      <div class="header-text">
+        <div class="eyebrow">समुह साधन केंद्र रविवार पेठ तालुका अंबाजोगाई</div>
+        <h1>माहिती संकलन सनियंत्रण फलक</h1>
+        <div class="sub">शाळाबाह्य सर्व्हे, SNA Sparsh चेकर व मेकर माहितीचे शाळानिहाय संकलन स्थिती — प्राप्त व प्रलंबित नोंदींचा गोषवारा.</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="dash-title"><span class="num mono" id="totalCount">0</span><h2>शाळांचा गोषवारा</h2></div>
+  <div class="cards" id="dashCards"></div>
+
+  <div class="toolbar">
+    <input type="text" class="search" id="searchBox" placeholder="शाळेचे नाव किंवा युडायस कोड शोधा…">
+    <div class="filters" role="group" aria-label="स्थिती फिल्टर">
+      <button data-filter="all" class="active">सर्व</button>
+      <button data-filter="pending">प्रलंबित</button>
+      <button data-filter="done">पूर्ण प्राप्त</button>
+    </div>
+    
+    <!-- Cloud Status Indicator -->
+    <div id="syncStatus" class="sync-status">🔄 डेटा लोड करत आहे...</div>
+
+    <button class="add-btn admin-toggle-btn" id="adminToggleBtn">🔒 अॅडमिन अनलॉक करा</button>
+    <button class="add-btn add-col-btn admin-only" id="changePinBtn" style="background:#a97142;">🔑 पिन बदला</button>
+    <button class="add-btn add-col-btn admin-only" id="addColBtn">+ नवीन रकाना जोडा</button>
+    <button class="add-btn admin-only" id="addBtn">+ नवीन शाळा जोडा</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr id="theadRow">
+          <!-- Headers injected dynamically via JS -->
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" style="display:none;">कोणतीही नोंद सापडली नाही.</div>
+  </div>
+
+  <footer class="note">
+    <strong>☁️ क्लाउड सिंक:</strong> ही माहिती सुरक्षितपणे Google Sheet मध्ये आपोआप जतन केली जाते. <br>
+    <strong>🔒 सुरक्षा नोंद:</strong> एकदा नोंद केलेली माहिती सुरक्षित केली जाते. बदल करण्यासाठी अॅडमिन हक्क आवश्यक आहेत.
+  </footer>
+</main>
+
+<!-- PIN Unlock Modal -->
+<div class="overlay" id="pinOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="pinModalTitle">अॅडमिन अनलॉक</h3>
+    <label for="inPin">पिन टाका</label>
+    <input type="password" id="inPin" placeholder="****">
+    <div class="err-msg" id="pinError">चुकीचा पिन! प्रवेश नाकारला.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="pinCancelBtn">रद्द करा</button>
+      <button class="btn-save" id="pinSubmitBtn">पडताळणी करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change PIN Modal -->
+<div class="overlay" id="changePinOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="changePinTitle">अॅडमिन पिन बदला</h3>
+    <label for="inNewPin">नवीन पिन तयार करा</label>
+    <input type="password" id="inNewPin" placeholder="नवीन पिन टाईप करा">
+    <div class="err-msg" id="changePinError"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="changePinCancelBtn">रद्द करा</button>
+      <button class="btn-save" id="changePinSaveBtn">जतन करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add School Modal -->
+<div class="overlay" id="overlay" style="display:none;">
+  <div class="modal">
+    <h3 id="modalTitle">नवीन शाळा जोडा</h3>
+    <label for="inName">शाळेचे नाव</label>
+    <input type="text" id="inName" placeholder="उदा. जि.प.प्रा.शा. वरवटी">
+    <label for="inUdise">युडायस कोड (ऐच्छिक)</label>
+    <input type="text" id="inUdise" placeholder="उदा. 27270103301">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelBtn">रद्द करा</button>
+      <button class="btn-save" id="saveBtn">जतन करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Column Modal -->
+<div class="overlay" id="colOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="colModalTitle">नवीन रकाना जोडा</h3>
+    <label for="inColName">रकान्याचे नाव (उदा. स्वाध्याय स्थिती)</label>
+    <input type="text" id="inColName" placeholder="येथे रकान्याचे नाव टाईप करा...">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="colCancelBtn">रद्द करा</button>
+      <button class="btn-save" id="colSaveBtn">जतन करा</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Delete Confirmation Modal -->
+<div class="overlay" id="deleteOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="deleteTitle">काढून टाका</h3>
+    <div class="del-text" id="deleteText"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="deleteCancelBtn">रद्द करा</button>
+      <button class="btn-save" id="deleteConfirmBtn" style="background:var(--pend);">होय, काढून टाका</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// EXCLUSIVE CLOUD API ENGINE (NO LOCAL STORAGE)
+const API_URL = "https://script.google.com/macros/s/AKfycbwiQeuLh5fHKUXlpwQOeJQIKqiVsjV2PAQEV0d-wcBDlf-2kLm5WFY5UPWm4qo5YOKc/exec";
+
+let ADMIN_PIN = '1234'; 
+let isAdmin = false;
+
+// Seed Data for First Run on an empty Google Sheet
+const seedSchools = [
+  ["27270101612","सी.पी.एस. रविवार पेठ"],
+  ["27270101613","जि.प.प्रा.शा. क्र. २, अंबाजोगाई"],
+  ["27270102401","जि.प.प्रा.शा. साकुड (मराठी)"],
+  ["27270102404","जि.प.प्रा.शा. साकुड (उर्दू)"],
+  ["27270102501","जि.प.प्रा.शा. काळवटी तांडा क्र. १"],
+  ["27270102502","जि.प.प्रा.शा. काळवटी तांडा क्र. ३"],
+  ["27270102503","जि.प.प्रा.शा. भीमाई वस्ती"],
+  ["27270102601","जि.प.प्रा.शा. काळवटी तांडा क्र. २"],
+  ["27270102701","जि.प.प्रा.शा. मांडवा पठाण"],
+  ["27270102801","जि.प.प्रा.शा. मांडवा तांडा"],
+  ["27270102901","जि.प.प्रा.शा. पोलेवाडी"],
+  ["27270103001","जि.प.प्रा.शा. नागझरी वसाहत"],
+  ["27270103101","जि.प.प्रा.शा. शेपवाडी"],
+  ["27270103102","जि.प.प्रा.शा. सह्याद्री नगर शेपवाडी"],
+  ["27270103201","जि.प.प्रा.शा. पिंपळा धायगुडा (मराठी)"],
+  ["27270103203","जि.प.प्रा.शा. पिंपळा धायगुडा (उर्दू)"],
+  ["27270103301","जि.प.प्रा.शा. वरवटी"],
+  ["27270103303","जि.प.प्रा.शा. उघडे वस्ती (वरवटी)"],
+  ["27270103401","जि.प.प्रा.शा. तलाव पाटी"],
+  ["27270103501","जि.प.प्रा.शा. अंबलवाडी"],
+  ["27270103502","जि. प. प्रा.शा. गोल्टावस्ती"],
+  ["27270103701","जि.प.प्रा.शा. गिरवली आपेट"],
+  ["27270103801","जि.प.हा.स्कू. गिरवली"]
+].map((s,i)=>({
+  id: 'sch_'+i,
+  udise: s[0],
+  name: s[1],
+  shalabahya: false,
+  snaChecker: false,
+  snaMaker: false
+}));
+
+const seedColumns = [
+  {id: 'shalabahya', label: 'शालाबाह्य सर्व्हे'},
+  {id: 'snaChecker', label: 'SNA Sparsh चेकर'},
+  {id: 'snaMaker', label: 'SNA Sparsh मेकर'}
+];
+
+let schools = [];
+let columns = [];
+let currentFilter = 'all';
+let searchTerm = '';
+
+// Load Data Direct From Google Sheets API
+async function loadData(){
+  const syncStatus = document.getElementById('syncStatus');
+  syncStatus.className = 'sync-status loading';
+  syncStatus.textContent = '🔄 डेटा लोड करत आहे...';
+  syncStatus.style.display = 'inline-block';
+
+  try{
+    const response = await fetch(API_URL + "?t=" + new Date().getTime());
+    const text = await response.text();
+    
+    if(text && text.trim() !== ""){
+      const parsed = JSON.parse(text);
+      if(Array.isArray(parsed)) {
+        schools = parsed;
+        columns = [...seedColumns];
+      } else {
+        schools = parsed.schools || [];
+        columns = parsed.columns || [];
+        if(parsed.pin) {
+          ADMIN_PIN = parsed.pin;
+        }
+      }
+    } else {
+      // Setup initial data if Sheet is totally empty
+      schools = seedSchools;
+      columns = [...seedColumns];
+      await persist();
+    }
+  } catch(e) {
+    console.error('API Error:', e);
+    alert('डेटा लोड करताना त्रुटी आली. कृपया इंटरनेट तपासा.');
+    schools = seedSchools;
+    columns = [...seedColumns];
+  }
+  
+  syncStatus.style.display = 'none';
+  render();
+}
+
+// Save Data Direct to Google Sheets API
+async function persist(){
+  const syncStatus = document.getElementById('syncStatus');
+  syncStatus.className = 'sync-status loading';
+  syncStatus.textContent = '☁️ माहिती Google Sheet वर जतन होत आहे...';
+  syncStatus.style.display = 'inline-block';
+
+  try{
+    const payload = JSON.stringify({ schools, columns, pin: ADMIN_PIN });
+    await fetch(API_URL, {
+      method: 'POST',
+      body: payload,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    });
+    
+    syncStatus.className = 'sync-status';
+    syncStatus.textContent = '✅ जतन झाले';
+    setTimeout(() => { syncStatus.style.display = 'none'; }, 2000);
+  } catch(e) {
+    console.error('API Error:', e);
+    syncStatus.className = 'sync-status loading';
+    syncStatus.textContent = '❌ जतन करताना त्रुटी!';
+  }
+}
+
+function fieldCounts(fieldId){
+  const received = schools.filter(s => s[fieldId]).length;
+  return {received, pending: schools.length - received};
+}
+
+function renderTableHead(){
+  const tr = document.getElementById('theadRow');
+  tr.innerHTML = `
+    <th>अ.क्र.</th>
+    <th>शाळेचे नाव</th>
+    ${columns.map(c => `
+      <th class="center">
+        ${escapeHtml(c.label)}
+        <br><button class="del-col-btn admin-only" data-col="${c.id}" aria-label="रकाना काढा" title="हा रकाना काढून टाका">✕</button>
+      </th>
+    `).join('')}
+    <th class="center">एकूण स्थिती</th>
+    <th class="center admin-only"></th>
+  `;
+}
+
+function renderDashboard(){
+  document.getElementById('totalCount').textContent = schools.length;
+  const total = schools.length || 1;
+  const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
+
+  const cards = [];
+  cards.push(`
+    <div class="card overall">
+      <span class="pending-tag">${schools.length - fullyDone} प्रलंबित</span>
+      <div class="label">सर्व माहिती प्राप्त (एकूण)</div>
+      <div class="figures"><span class="big">${fullyDone}</span><span class="of">/ ${schools.length}</span></div>
+      <div class="bar"><div class="bar-fill" style="width:${(fullyDone/total*100).toFixed(0)}%"></div></div>
+    </div>`);
+
+  columns.forEach(c => {
+    const {received, pending} = fieldCounts(c.id);
+    cards.push(`
+      <div class="card">
+        <span class="pending-tag">${pending} प्रलंबित</span>
+        <div class="label">${escapeHtml(c.label)}</div>
+        <div class="figures"><span class="big">${received}</span><span class="of">/ ${schools.length}</span></div>
+        <div class="bar"><div class="bar-fill" style="width:${(received/total*100).toFixed(0)}%"></div></div>
+      </div>`);
+  });
+
+  document.getElementById('dashCards').innerHTML = cards.join('');
+}
+
+function matchesFilter(s){
+  const complete = columns.length > 0 && columns.every(c => s[c.id]);
+  if(currentFilter==='done') return complete;
+  if(currentFilter==='pending') return !complete;
+  return true;
+}
+function matchesSearch(s){
+  if(!searchTerm) return true;
+  const t = searchTerm.toLowerCase();
+  return s.name.toLowerCase().includes(t) || (s.udise||'').toLowerCase().includes(t);
+}
+
+// --- SECURE CHECKBOX LOGIC ---
+function chk(school, fieldId){
+  const isChecked = school[fieldId];
+  const disabledAttr = (isChecked && !isAdmin) ? 'disabled' : '';
+  
+  return `<label class="chk-wrap">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} data-id="${school.id}" data-field="${fieldId}">
+            <span class="chk-label">${isChecked ? 'प्राप्त' : 'बाकी'}</span>
+          </label>`;
+}
+
+function render(){
+  renderTableHead();
+  renderDashboard();
+  
+  const tbody = document.getElementById('tbody');
+  const filtered = schools.filter(s => matchesFilter(s) && matchesSearch(s));
+
+  if(filtered.length === 0){
+    tbody.innerHTML='';
+    document.getElementById('emptyMsg').style.display='block';
+  } else {
+    document.getElementById('emptyMsg').style.display='none';
+    tbody.innerHTML = filtered.map((s, idx)=>{
+      const complete = columns.length > 0 && columns.every(c => s[c.id]);
+      const dynamicCells = columns.map(c => `<td class="center">${chk(s, c.id)}</td>`).join('');
+
+      return `
+      <tr>
+        <td class="sr">${idx+1}</td>
+        <td>
+          <div class="school-name">${escapeHtml(s.name)}</div>
+          ${s.udise?`<div class="udise">UDISE ${escapeHtml(s.udise)}</div>`:''}
+        </td>
+        ${dynamicCells}
+        <td class="center"><span class="status-badge ${complete?'done':'pending'}">${complete?'पूर्ण प्राप्त':'प्रलंबित'}</span></td>
+        <td class="center row-actions admin-only">
+          <button title="काढून टाका" data-del="${s.id}" aria-label="शाळा काढून टाका">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function escapeHtml(str){
+  return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// --- PIN UNLOCK MODAL LOGIC ---
+const pinOverlay = document.getElementById('pinOverlay');
+const inPin = document.getElementById('inPin');
+const pinError = document.getElementById('pinError');
+
+document.getElementById('adminToggleBtn').addEventListener('click', () => {
+  const btn = document.getElementById('adminToggleBtn');
+  if (isAdmin) {
+    isAdmin = false;
+    document.body.classList.remove('admin-mode');
+    btn.textContent = '🔒 अॅडमिन अनलॉक करा';
+    btn.classList.remove('unlocked');
+    render(); 
+  } else {
+    inPin.value = '';
+    pinError.style.display = 'none';
+    pinOverlay.style.display = 'flex';
+    inPin.focus();
+  }
+});
+
+document.getElementById('pinCancelBtn').addEventListener('click', () => { pinOverlay.style.display = 'none'; });
+pinOverlay.addEventListener('click', (e) => { if(e.target === pinOverlay) pinOverlay.style.display = 'none'; });
+
+document.getElementById('pinSubmitBtn').addEventListener('click', () => {
+  const enteredPin = inPin.value.trim();
+  if (enteredPin === ADMIN_PIN) {
+    isAdmin = true;
+    document.body.classList.add('admin-mode');
+    const btn = document.getElementById('adminToggleBtn');
+    btn.textContent = '🔓 अॅडमिन लॉक करा';
+    btn.classList.add('unlocked');
+    pinOverlay.style.display = 'none';
+    render(); 
+  } else {
+    pinError.style.display = 'block';
+  }
+});
+
+inPin.addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') { document.getElementById('pinSubmitBtn').click(); }
+});
+
+// --- CHANGE PIN MODAL LOGIC ---
+const changePinOverlay = document.getElementById('changePinOverlay');
+const inNewPin = document.getElementById('inNewPin');
+const changePinError = document.getElementById('changePinError');
+
+document.getElementById('changePinBtn').addEventListener('click', () => {
+  inNewPin.value = '';
+  changePinError.style.display = 'none';
+  changePinOverlay.style.display = 'flex';
+  inNewPin.focus();
+});
+
+document.getElementById('changePinCancelBtn').addEventListener('click', () => { changePinOverlay.style.display = 'none'; });
+changePinOverlay.addEventListener('click', (e) => { if(e.target === changePinOverlay) changePinOverlay.style.display = 'none'; });
+
+document.getElementById('changePinSaveBtn').addEventListener('click', async () => {
+  const newPin = inNewPin.value.trim();
+  if (!newPin) {
+    changePinError.textContent = 'कृपया नवीन पिन टाका.';
+    changePinError.style.display = 'block';
+    return;
+  }
+  
+  ADMIN_PIN = newPin; 
+  await persist(); 
+  changePinOverlay.style.display = 'none';
+});
+
+inNewPin.addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') { document.getElementById('changePinSaveBtn').click(); }
+});
+
+// --- CUSTOM DELETE CONFIRMATION MODAL LOGIC ---
+let itemToDelete = null; 
+const deleteOverlay = document.getElementById('deleteOverlay');
+const deleteTitle = document.getElementById('deleteTitle');
+const deleteText = document.getElementById('deleteText');
+
+document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+  deleteOverlay.style.display = 'none';
+  itemToDelete = null;
+});
+
+deleteOverlay.addEventListener('click', (e) => {
+  if(e.target === deleteOverlay) {
+    deleteOverlay.style.display = 'none';
+    itemToDelete = null;
+  }
+});
+
+document.getElementById('deleteConfirmBtn').addEventListener('click', async () => {
+  if (itemToDelete) {
+    if (itemToDelete.type === 'column') {
+      columns = columns.filter(c => c.id !== itemToDelete.id);
+    } else if (itemToDelete.type === 'school') {
+      schools = schools.filter(s => s.id !== itemToDelete.id);
+    }
+    await persist();
+    render();
+  }
+  deleteOverlay.style.display = 'none';
+  itemToDelete = null;
+});
+
+// Row Checkbox & Delete School Logic
+document.getElementById('tbody').addEventListener('change', async (e)=>{
+  if(e.target.matches('input[type=checkbox]')){
+    const id = e.target.dataset.id;
+    const field = e.target.dataset.field;
+    const school = schools.find(s=>s.id===id);
+    if(school){
+      school[field] = e.target.checked;
+      await persist();
+      render(); 
+    }
+  }
+});
+
+document.getElementById('tbody').addEventListener('click', async (e)=>{
+  const delId = e.target.closest('[data-del]');
+  if(delId){
+    if (!isAdmin) return; 
+    const id = delId.getAttribute('data-del');
+    const schoolDef = schools.find(s => s.id === id);
+    if (schoolDef) {
+      itemToDelete = { type: 'school', id: id };
+      deleteTitle.textContent = 'शाळा काढून टाका';
+      deleteText.innerHTML = `<strong>${escapeHtml(schoolDef.name)}</strong><br>ही शाळा यादीतून नक्की काढून टाकायची आहे का?`;
+      deleteOverlay.style.display = 'flex';
+    }
+  }
+});
+
+// Delete Column Logic
+document.getElementById('theadRow').addEventListener('click', async (e) => {
+  const delColBtn = e.target.closest('.del-col-btn');
+  if(delColBtn){
+    if (!isAdmin) return; 
+    const colId = delColBtn.getAttribute('data-col');
+    const colDef = columns.find(c => c.id === colId);
+    if(colDef){
+      itemToDelete = { type: 'column', id: colId };
+      deleteTitle.textContent = 'रकाना काढून टाका';
+      deleteText.innerHTML = `<strong>${escapeHtml(colDef.label)}</strong><br>हा रकाना नक्की काढून टाकायचा आहे का?`;
+      deleteOverlay.style.display = 'flex';
+    }
+  }
+});
+
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  searchTerm = e.target.value;
+  render();
+});
+
+document.querySelectorAll('.filters button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+/* Modal logics for 'Add School' */
+const overlay = document.getElementById('overlay');
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  if (!isAdmin) return; 
+  document.getElementById('inName').value='';
+  document.getElementById('inUdise').value='';
+  overlay.style.display='flex';
+  document.getElementById('inName').focus();
+});
+document.getElementById('cancelBtn').addEventListener('click', ()=>{ overlay.style.display='none'; });
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.style.display='none'; });
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('inName').value.trim();
+  const udise = document.getElementById('inUdise').value.trim();
+  if(!name){ document.getElementById('inName').focus(); return; }
+  
+  const newSchool = {
+    id: 'sch_'+Date.now(),
+    name, udise
+  };
+  columns.forEach(c => { newSchool[c.id] = false; });
+  schools.push(newSchool);
+  
+  await persist();
+  overlay.style.display='none';
+  render();
+});
+
+/* Modal logics for 'Add Column' */
+const colOverlay = document.getElementById('colOverlay');
+document.getElementById('addColBtn').addEventListener('click', ()=>{
+  if (!isAdmin) return;
+  document.getElementById('inColName').value = '';
+  colOverlay.style.display = 'flex';
+  document.getElementById('inColName').focus();
+});
+document.getElementById('colCancelBtn').addEventListener('click', ()=>{ colOverlay.style.display='none'; });
+colOverlay.addEventListener('click', (e)=>{ if(e.target===colOverlay) colOverlay.style.display='none'; });
+
+document.getElementById('colSaveBtn').addEventListener('click', async ()=>{
+  const label = document.getElementById('inColName').value.trim();
+  if(!label){ document.getElementById('inColName').focus(); return; }
+  
+  const newId = 'col_' + Date.now();
+  columns.push({ id: newId, label });
+  
+  schools.forEach(s => { s[newId] = false; });
+  
+  await persist();
+  colOverlay.style.display='none';
+  render();
+});
+
+// Boot the App
+loadData();
+</script>
+
+</body>
+</html>
