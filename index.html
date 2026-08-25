@@ -68,7 +68,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  /* Updated Eyebrow for larger text */
   .eyebrow{
     font-family: 'Noto Sans Devanagari', sans-serif;
     font-size: 16px;
@@ -167,10 +166,9 @@
   .add-col-btn { background: var(--navy); }
   .add-col-btn:hover { background: var(--navy-deep); }
 
-  .admin-toggle-btn { background: var(--muted); margin-right: auto; }
+  .admin-toggle-btn { background: var(--muted); }
   .admin-toggle-btn.unlocked { background: var(--pend); }
   
-  /* Cloud Sync Status Indicator */
   .sync-status {
     font-size: 13px;
     font-weight: 700;
@@ -194,7 +192,6 @@
     100% { opacity: 1; }
   }
 
-  /* Security / Admin Mode Hiding */
   body:not(.admin-mode) .admin-only {
     display: none !important;
   }
@@ -224,7 +221,6 @@
   .chk-wrap input[type=checkbox]{
     width:19px; height:19px; accent-color:var(--ok); cursor:pointer;
   }
-  /* Style for disabled checkboxes so they look locked */
   .chk-wrap input[type=checkbox]:disabled {
     cursor: not-allowed;
     opacity: 0.6;
@@ -282,11 +278,62 @@
   .err-msg {color: var(--pend); font-size: 12px; margin-top: 5px; display: none;}
   
   .del-text { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
-
   .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
 
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;}
+  }
+
+  /* ==============================================================
+     COMPACT ADAPTIVE PDF & PRINT STYLES
+  ============================================================== */
+  @media print {
+    @page { size: landscape; margin: 10mm; }
+    
+    body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+    header.top { background: #fff !important; color: #000 !important; padding: 10px 0 !important; border-bottom: 2px solid #333; }
+    header.top::after { display: none; }
+    
+    .logo-box { border-color: #000; color: #000 !important; background: none !important; }
+    .logo-box svg { color: #000 !important; stroke: #000 !important; }
+    .eyebrow { color: #333 !important; }
+    h1 { color: #000 !important; font-size: 20px !important; margin-bottom: 4px; }
+    .sub { color: #333 !important; font-size: 12px !important; max-width: none; }
+    
+    /* Hiding Interactive & Unnecessary UI elements */
+    .toolbar, .admin-only, .add-btn, footer.note, #syncStatus { display: none !important; }
+    
+    main { padding: 10px 0 !important; max-width: 100% !important; margin: 0 !important; }
+    
+    /* Compact Dashboard Cards */
+    .cards { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 15px !important; }
+    .card { box-shadow: none !important; border: 1px solid #666 !important; padding: 8px !important; break-inside: avoid; }
+    .card.overall { background: #f0f0f0 !important; color: #000 !important; border-color: #666 !important; }
+    .card.overall .label, .card.overall .figures .of { color: #333 !important; }
+    .bar, .pending-tag { display: none !important; }
+    .figures .big { font-size: 18px !important; color: #000 !important; }
+    .dash-title { margin-bottom: 8px !important; }
+    
+    /* Compact Table Styling */
+    .table-wrap { overflow: visible !important; border: none !important; box-shadow: none !important; margin-bottom: 0; }
+    table { border-collapse: collapse; width: 100%; border: 1px solid #333; min-width: auto; }
+    thead th { background: #e0e0e0 !important; color: #000 !important; border: 1px solid #333; padding: 6px !important; font-size: 12px !important; }
+    tbody tr { border-bottom: 1px solid #333; page-break-inside: avoid; }
+    td { border: 1px solid #333; padding: 4px 6px !important; font-size: 11px !important; }
+    .school-name { font-size: 12px; }
+    
+    /* Checkbox Print Replacements (Ticks/Crosses instead of raw inputs) */
+    .chk-wrap input[type=checkbox] { display: none; }
+    .chk-wrap input[type=checkbox]:checked + .chk-label::before { content: "✅ "; font-size: 11px; }
+    .chk-wrap input[type=checkbox]:not(:checked) + .chk-label::before { content: "❌ "; font-size: 11px; }
+    .chk-label { font-size: 12px !important; color: #000 !important; font-weight: bold; }
+    
+    /* Simplified Status Badges */
+    .status-badge { border: 1px solid #000; background: none !important; padding: 2px 4px !important; color: #000 !important; font-size: 11px !important; }
+    .status-badge.done::before { content: "✅ "; }
+    .status-badge.pending::before { content: "⏳ "; }
+    
+    .del-col-btn, .row-actions { display: none !important; }
   }
 </style>
 </head>
@@ -295,15 +342,12 @@
 <header class="top">
   <div class="top-inner">
     <div class="header-content">
-      <!-- Scalable Logo Icon -->
       <div class="logo-box">
         <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" color="var(--brass-light)">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
           <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
         </svg>
       </div>
-      
-      <!-- Text Information -->
       <div class="header-text">
         <div class="eyebrow">समुह साधन केंद्र रविवार पेठ तालुका अंबाजोगाई</div>
         <h1>माहिती संकलन सनियंत्रण फलक</h1>
@@ -325,11 +369,15 @@
       <button data-filter="pending">प्रलंबित</button>
       <button data-filter="done">पूर्ण प्राप्त</button>
     </div>
+
+    <!-- PDF Download Button -->
+    <button class="add-btn" id="downloadPdfBtn" style="background:var(--ok);">📄 PDF डाउनलोड करा</button>
     
     <!-- Cloud Status Indicator -->
-    <div id="syncStatus" class="sync-status">🔄 डेटा लोड करत आहे...</div>
+    <div id="syncStatus" class="sync-status" style="margin-right:auto; margin-left: 10px;">🔄 डेटा लोड करत आहे...</div>
 
-    <button class="add-btn admin-toggle-btn" id="adminToggleBtn">🔒 अॅडमिन अनलॉक करा</button>
+    <!-- Buttons -->
+    <button class="add-btn admin-toggle-btn" id="adminToggleBtn" style="margin-left:auto;">🔒 अॅडमिन अनलॉक करा</button>
     <button class="add-btn add-col-btn admin-only" id="changePinBtn" style="background:#a97142;">🔑 पिन बदला</button>
     <button class="add-btn add-col-btn admin-only" id="addColBtn">+ नवीन रकाना जोडा</button>
     <button class="add-btn admin-only" id="addBtn">+ नवीन शाळा जोडा</button>
@@ -353,7 +401,7 @@
   </footer>
 </main>
 
-<!-- PIN Unlock Modal -->
+<!-- Modals remain the same... -->
 <div class="overlay" id="pinOverlay" style="display:none;">
   <div class="modal">
     <h3 id="pinModalTitle">अॅडमिन अनलॉक</h3>
@@ -367,7 +415,6 @@
   </div>
 </div>
 
-<!-- Change PIN Modal -->
 <div class="overlay" id="changePinOverlay" style="display:none;">
   <div class="modal">
     <h3 id="changePinTitle">अॅडमिन पिन बदला</h3>
@@ -381,7 +428,6 @@
   </div>
 </div>
 
-<!-- Add School Modal -->
 <div class="overlay" id="overlay" style="display:none;">
   <div class="modal">
     <h3 id="modalTitle">नवीन शाळा जोडा</h3>
@@ -396,7 +442,6 @@
   </div>
 </div>
 
-<!-- Add Column Modal -->
 <div class="overlay" id="colOverlay" style="display:none;">
   <div class="modal">
     <h3 id="colModalTitle">नवीन रकाना जोडा</h3>
@@ -409,7 +454,6 @@
   </div>
 </div>
 
-<!-- Generic Delete Confirmation Modal -->
 <div class="overlay" id="deleteOverlay" style="display:none;">
   <div class="modal">
     <h3 id="deleteTitle">काढून टाका</h3>
@@ -422,13 +466,10 @@
 </div>
 
 <script>
-// EXCLUSIVE CLOUD API ENGINE (NO LOCAL STORAGE)
 const API_URL = "https://script.google.com/macros/s/AKfycbwiQeuLh5fHKUXlpwQOeJQIKqiVsjV2PAQEV0d-wcBDlf-2kLm5WFY5UPWm4qo5YOKc/exec";
-
 let ADMIN_PIN = '1234'; 
 let isAdmin = false;
 
-// Seed Data for First Run on an empty Google Sheet
 const seedSchools = [
   ["27270101612","सी.पी.एस. रविवार पेठ"],
   ["27270101613","जि.प.प्रा.शा. क्र. २, अंबाजोगाई"],
@@ -454,12 +495,7 @@ const seedSchools = [
   ["27270103701","जि.प.प्रा.शा. गिरवली आपेट"],
   ["27270103801","जि.प.हा.स्कू. गिरवली"]
 ].map((s,i)=>({
-  id: 'sch_'+i,
-  udise: s[0],
-  name: s[1],
-  shalabahya: false,
-  snaChecker: false,
-  snaMaker: false
+  id: 'sch_'+i, udise: s[0], name: s[1], shalabahya: false, snaChecker: false, snaMaker: false
 }));
 
 const seedColumns = [
@@ -473,7 +509,6 @@ let columns = [];
 let currentFilter = 'all';
 let searchTerm = '';
 
-// Load Data Direct From Google Sheets API
 async function loadData(){
   const syncStatus = document.getElementById('syncStatus');
   syncStatus.className = 'sync-status loading';
@@ -492,12 +527,9 @@ async function loadData(){
       } else {
         schools = parsed.schools || [];
         columns = parsed.columns || [];
-        if(parsed.pin) {
-          ADMIN_PIN = parsed.pin;
-        }
+        if(parsed.pin) { ADMIN_PIN = parsed.pin; }
       }
     } else {
-      // Setup initial data if Sheet is totally empty
       schools = seedSchools;
       columns = [...seedColumns];
       await persist();
@@ -513,7 +545,6 @@ async function loadData(){
   render();
 }
 
-// Save Data Direct to Google Sheets API
 async function persist(){
   const syncStatus = document.getElementById('syncStatus');
   syncStatus.className = 'sync-status loading';
@@ -599,11 +630,9 @@ function matchesSearch(s){
   return s.name.toLowerCase().includes(t) || (s.udise||'').toLowerCase().includes(t);
 }
 
-// --- SECURE CHECKBOX LOGIC ---
 function chk(school, fieldId){
   const isChecked = school[fieldId];
   const disabledAttr = (isChecked && !isAdmin) ? 'disabled' : '';
-  
   return `<label class="chk-wrap">
             <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} data-id="${school.id}" data-field="${fieldId}">
             <span class="chk-label">${isChecked ? 'प्राप्त' : 'बाकी'}</span>
@@ -647,7 +676,12 @@ function escapeHtml(str){
   return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-// --- PIN UNLOCK MODAL LOGIC ---
+// PDF Download Initialization
+document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+  window.print();
+});
+
+// Admin Pin Logics
 const pinOverlay = document.getElementById('pinOverlay');
 const inPin = document.getElementById('inPin');
 const pinError = document.getElementById('pinError');
@@ -690,7 +724,6 @@ inPin.addEventListener('keypress', function (e) {
   if (e.key === 'Enter') { document.getElementById('pinSubmitBtn').click(); }
 });
 
-// --- CHANGE PIN MODAL LOGIC ---
 const changePinOverlay = document.getElementById('changePinOverlay');
 const inNewPin = document.getElementById('inNewPin');
 const changePinError = document.getElementById('changePinError');
@@ -712,17 +745,14 @@ document.getElementById('changePinSaveBtn').addEventListener('click', async () =
     changePinError.style.display = 'block';
     return;
   }
-  
   ADMIN_PIN = newPin; 
   await persist(); 
   changePinOverlay.style.display = 'none';
 });
-
 inNewPin.addEventListener('keypress', function (e) {
-  if (e.key === 'Enter') { document.getElementById('changePinSaveBtn').click(); }
+  if (e.key === 'Enter') document.getElementById('changePinSaveBtn').click(); 
 });
 
-// --- CUSTOM DELETE CONFIRMATION MODAL LOGIC ---
 let itemToDelete = null; 
 const deleteOverlay = document.getElementById('deleteOverlay');
 const deleteTitle = document.getElementById('deleteTitle');
@@ -754,7 +784,6 @@ document.getElementById('deleteConfirmBtn').addEventListener('click', async () =
   itemToDelete = null;
 });
 
-// Row Checkbox & Delete School Logic
 document.getElementById('tbody').addEventListener('change', async (e)=>{
   if(e.target.matches('input[type=checkbox]')){
     const id = e.target.dataset.id;
@@ -783,7 +812,6 @@ document.getElementById('tbody').addEventListener('click', async (e)=>{
   }
 });
 
-// Delete Column Logic
 document.getElementById('theadRow').addEventListener('click', async (e) => {
   const delColBtn = e.target.closest('.del-col-btn');
   if(delColBtn){
@@ -813,7 +841,6 @@ document.querySelectorAll('.filters button').forEach(btn=>{
   });
 });
 
-/* Modal logics for 'Add School' */
 const overlay = document.getElementById('overlay');
 document.getElementById('addBtn').addEventListener('click', ()=>{
   if (!isAdmin) return; 
@@ -830,10 +857,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const udise = document.getElementById('inUdise').value.trim();
   if(!name){ document.getElementById('inName').focus(); return; }
   
-  const newSchool = {
-    id: 'sch_'+Date.now(),
-    name, udise
-  };
+  const newSchool = { id: 'sch_'+Date.now(), name, udise };
   columns.forEach(c => { newSchool[c.id] = false; });
   schools.push(newSchool);
   
@@ -842,7 +866,6 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   render();
 });
 
-/* Modal logics for 'Add Column' */
 const colOverlay = document.getElementById('colOverlay');
 document.getElementById('addColBtn').addEventListener('click', ()=>{
   if (!isAdmin) return;
@@ -859,7 +882,6 @@ document.getElementById('colSaveBtn').addEventListener('click', async ()=>{
   
   const newId = 'col_' + Date.now();
   columns.push({ id: newId, label });
-  
   schools.forEach(s => { s[newId] = false; });
   
   await persist();
