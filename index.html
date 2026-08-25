@@ -381,6 +381,9 @@
     <!-- PDF Download Button -->
     <button class="add-btn" id="downloadPdfBtn" style="background:var(--ok);">📄 PDF डाउनलोड करा</button>
     
+    <!-- WhatsApp Share Button -->
+    <button class="add-btn" id="waShareBtn" style="background:#25D366; color:#fff;">💬 WhatsApp वर अहवाल पाठवा</button>
+    
     <!-- Cloud Status Indicator -->
     <div id="syncStatus" class="sync-status" style="margin-right:auto; margin-left: 10px;">🔄 डेटा लोड करत आहे...</div>
 
@@ -895,6 +898,35 @@ document.getElementById('colSaveBtn').addEventListener('click', async ()=>{
   await persist();
   colOverlay.style.display='none';
   render();
+});
+
+// WhatsApp Share Logic
+document.getElementById('waShareBtn').addEventListener('click', () => {
+  const total = schools.length;
+  const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
+  const pendingCount = total - fullyDone;
+
+  let waMessage = `*📊 माहिती संकलन सद्यस्थिती अहवाल*\n\n`;
+  waMessage += `*एकूण शाळा:* ${total}\n`;
+  waMessage += `*माहिती पूर्ण प्राप्त:* ${fullyDone}\n`;
+  waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
+  waMessage += `------------------------\n`;
+
+  const pendingSchools = schools.filter(s => columns.length === 0 || !columns.every(c => s[c.id]));
+  
+  if(pendingSchools.length > 0) {
+    waMessage += `*⏳ प्रलंबित शाळांची यादी:*\n`;
+    pendingSchools.forEach((s, index) => {
+      waMessage += `${index + 1}. ${s.name}\n`;
+    });
+    waMessage += `\n_कृपया वरील शाळांनी आपली माहिती लवकरात लवकर अद्ययावत करावी._\n`;
+  } else {
+    waMessage += `\n*🎉 सर्व शाळांची माहिती प्राप्त झाली आहे!*\n`;
+  }
+
+  const encodedMessage = encodeURIComponent(waMessage);
+  const waUrl = `https://wa.me/?text=${encodedMessage}`;
+  window.open(waUrl, '_blank');
 });
 
 // Boot the App
