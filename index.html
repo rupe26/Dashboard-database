@@ -124,10 +124,24 @@
   .card .figures .big{font-family:'Space Mono',monospace; font-size:28px; font-weight:700;}
   .card .figures .of{font-size:13px; color:var(--muted);}
   .card.overall .figures .of{color:#c7cedb;}
-  .bar{height:6px; border-radius:4px; background:var(--rule); margin-top:10px; overflow:hidden;}
+  
+  /* Progress Bar & WA Share Button Layout */
+  .bar-container { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 12px; }
+  .bar{height:6px; border-radius:4px; background:var(--rule); overflow:hidden; flex:1;}
   .card.overall .bar{background:rgba(255,255,255,0.18);}
   .bar-fill{height:100%; border-radius:4px; background:var(--ok); transition:width .4s ease;}
   .card.overall .bar-fill{background:var(--brass-light);}
+  
+  .wa-topic-btn {
+    background: #25D366; color: #fff; border: none; border-radius: 5px;
+    padding: 5px 8px; font-size: 11px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .wa-topic-btn:hover { background: #1ebc59; }
+  .card.overall .wa-topic-btn { background: rgba(255,255,255,0.15); color: #fff; }
+  .card.overall .wa-topic-btn:hover { background: rgba(255,255,255,0.3); }
+
   .card .pending-tag{
     position:absolute; top:14px; right:14px;
     font-size:11px; font-family:'Space Mono',monospace; color:var(--pend);
@@ -288,20 +302,19 @@
   ============================================================== */
   @media print {
     @page { 
-      size: A4 portrait; /* Set to Portrait A4 */
-      margin: 8mm; /* Reduced margins to fit more content */
+      size: A4 portrait;
+      margin: 8mm; 
     }
     
     html, body { 
       -webkit-print-color-adjust: exact !important; 
-      print-color-adjust: exact !important; /* Forces browsers to print colors */
+      print-color-adjust: exact !important;
       background: var(--paper) !important;
     }
 
-    /* Hiding Interactive & Unnecessary UI elements */
-    .toolbar, .admin-only, .add-btn, footer.note, #syncStatus { display: none !important; }
+    /* Hide UI elements and WhatsApp Buttons during Print */
+    .toolbar, .admin-only, .add-btn, footer.note, #syncStatus, .wa-topic-btn { display: none !important; }
 
-    /* Compact Header */
     header.top { padding: 12px 16px !important; border-radius: 8px !important; margin-bottom: 12px !important; }
     .logo-box { padding: 8px !important; width: 36px; height: 36px; }
     .logo-box svg { width: 20px; height: 20px; }
@@ -312,7 +325,6 @@
     
     main { padding: 0 10px !important; max-width: 100% !important; margin: 0 !important; }
     
-    /* Compact Dashboard Cards */
     .dash-title { margin-bottom: 6px !important; }
     .dash-title h2 { font-size: 13px !important; }
     .cards { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 12px !important; }
@@ -320,10 +332,10 @@
     .card .label { font-size: 10px !important; margin-bottom: 4px !important; }
     .card .figures .big { font-size: 18px !important; }
     .card .figures .of { font-size: 10px !important; }
-    .bar { height: 4px !important; margin-top: 6px !important; }
+    .bar-container { margin-top: 6px !important; }
+    .bar { height: 4px !important; }
     .pending-tag { font-size: 9px !important; padding: 2px 6px !important; top: 6px !important; right: 6px !important; }
     
-    /* Compact Table Styling to fit on one page */
     .table-wrap { overflow: visible !important; border: 1px solid var(--rule) !important; box-shadow: none !important; margin-bottom: 0 !important; border-radius: 6px !important; }
     table { width: 100% !important; min-width: auto !important; font-size: 11px !important; }
     thead th { padding: 6px !important; font-size: 10px !important; }
@@ -333,14 +345,11 @@
     .school-name { font-size: 11px !important; }
     .udise { font-size: 9px !important; }
     
-    /* Colored Text instead of Checkboxes for cleaner Print */
     .chk-wrap input[type=checkbox] { display: none !important; }
     .chk-wrap input[type=checkbox]:checked + .chk-label { color: var(--ok) !important; font-weight: 800 !important; font-size: 11px !important; }
     .chk-wrap input[type=checkbox]:not(:checked) + .chk-label { color: var(--pend) !important; font-weight: 800 !important; font-size: 11px !important; }
     
-    /* Compact Status Badges */
     .status-badge { padding: 2px 6px !important; font-size: 10px !important; }
-    
     .del-col-btn, .row-actions { display: none !important; }
   }
 </style>
@@ -368,6 +377,8 @@
 <main>
 
   <div class="dash-title"><span class="num mono" id="totalCount">0</span><h2>शाळांचा गोषवारा</h2></div>
+  
+  <!-- Dashboard Cards will be injected here -->
   <div class="cards" id="dashCards"></div>
 
   <div class="toolbar">
@@ -380,9 +391,6 @@
 
     <!-- PDF Download Button -->
     <button class="add-btn" id="downloadPdfBtn" style="background:var(--ok);">📄 PDF डाउनलोड करा</button>
-    
-    <!-- WhatsApp Share Button -->
-    <button class="add-btn" id="waShareBtn" style="background:#25D366; color:#fff;">💬 WhatsApp वर अहवाल पाठवा</button>
     
     <!-- Cloud Status Indicator -->
     <div id="syncStatus" class="sync-status" style="margin-right:auto; margin-left: 10px;">🔄 डेटा लोड करत आहे...</div>
@@ -607,14 +615,20 @@ function renderDashboard(){
   const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
 
   const cards = [];
+  
+  // Overall Dashboard Card (With WA Button)
   cards.push(`
     <div class="card overall">
       <span class="pending-tag">${schools.length - fullyDone} प्रलंबित</span>
       <div class="label">सर्व माहिती प्राप्त (एकूण)</div>
       <div class="figures"><span class="big">${fullyDone}</span><span class="of">/ ${schools.length}</span></div>
-      <div class="bar"><div class="bar-fill" style="width:${(fullyDone/total*100).toFixed(0)}%"></div></div>
+      <div class="bar-container">
+        <div class="bar"><div class="bar-fill" style="width:${(fullyDone/total*100).toFixed(0)}%"></div></div>
+        <button class="wa-topic-btn" data-topic="overall" title="एकूण अहवाल WhatsApp वर पाठवा">💬 शेअर</button>
+      </div>
     </div>`);
 
+  // Topic-wise Dashboard Cards (With WA Button)
   columns.forEach(c => {
     const {received, pending} = fieldCounts(c.id);
     cards.push(`
@@ -622,7 +636,10 @@ function renderDashboard(){
         <span class="pending-tag">${pending} प्रलंबित</span>
         <div class="label">${escapeHtml(c.label)}</div>
         <div class="figures"><span class="big">${received}</span><span class="of">/ ${schools.length}</span></div>
-        <div class="bar"><div class="bar-fill" style="width:${(received/total*100).toFixed(0)}%"></div></div>
+        <div class="bar-container">
+          <div class="bar"><div class="bar-fill" style="width:${(received/total*100).toFixed(0)}%"></div></div>
+          <button class="wa-topic-btn" data-topic="${c.id}" data-label="${escapeHtml(c.label)}" title="या विषयाचा अहवाल WhatsApp वर पाठवा">💬 शेअर</button>
+        </div>
       </div>`);
   });
 
@@ -900,20 +917,43 @@ document.getElementById('colSaveBtn').addEventListener('click', async ()=>{
   render();
 });
 
-// WhatsApp Share Logic
-document.getElementById('waShareBtn').addEventListener('click', () => {
+// Dynamic WhatsApp Share Logic for Topics
+document.getElementById('dashCards').addEventListener('click', (e) => {
+  const btn = e.target.closest('.wa-topic-btn');
+  if (!btn) return;
+
+  const topicId = btn.dataset.topic;
+  const topicLabel = btn.dataset.label;
   const total = schools.length;
-  const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
-  const pendingCount = total - fullyDone;
 
-  let waMessage = `*📊 माहिती संकलन सद्यस्थिती अहवाल*\n\n`;
-  waMessage += `*एकूण शाळा:* ${total}\n`;
-  waMessage += `*माहिती पूर्ण प्राप्त:* ${fullyDone}\n`;
-  waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
-  waMessage += `------------------------\n`;
+  let waMessage = "";
+  let pendingSchools = [];
 
-  const pendingSchools = schools.filter(s => columns.length === 0 || !columns.every(c => s[c.id]));
-  
+  if (topicId === 'overall') {
+    const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
+    const pendingCount = total - fullyDone;
+
+    waMessage += `*📊 माहिती संकलन सद्यस्थिती (एकूण अहवाल)*\n\n`;
+    waMessage += `*एकूण शाळा:* ${total}\n`;
+    waMessage += `*सर्व माहिती प्राप्त:* ${fullyDone}\n`;
+    waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
+    waMessage += `------------------------\n`;
+
+    pendingSchools = schools.filter(s => columns.length === 0 || !columns.every(c => s[c.id]));
+  } else {
+    const received = schools.filter(s => s[topicId]).length;
+    const pendingCount = total - received;
+
+    waMessage += `*📊 विषयनिहाय माहिती संकलन अहवाल*\n\n`;
+    waMessage += `*विषय:* ${topicLabel}\n`;
+    waMessage += `*एकूण शाळा:* ${total}\n`;
+    waMessage += `*माहिती प्राप्त:* ${received}\n`;
+    waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
+    waMessage += `------------------------\n`;
+
+    pendingSchools = schools.filter(s => !s[topicId]);
+  }
+
   if(pendingSchools.length > 0) {
     waMessage += `*⏳ प्रलंबित शाळांची यादी:*\n`;
     pendingSchools.forEach((s, index) => {
@@ -921,7 +961,7 @@ document.getElementById('waShareBtn').addEventListener('click', () => {
     });
     waMessage += `\n_कृपया वरील शाळांनी आपली माहिती लवकरात लवकर अद्ययावत करावी._\n`;
   } else {
-    waMessage += `\n*🎉 सर्व शाळांची माहिती प्राप्त झाली आहे!*\n`;
+    waMessage += `\n*🎉 या विषयाची सर्व शाळांची माहिती प्राप्त झाली आहे!*\n`;
   }
 
   const encodedMessage = encodeURIComponent(waMessage);
