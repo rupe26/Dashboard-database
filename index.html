@@ -51,7 +51,6 @@
   }
   .top-inner{max-width:1180px; margin:0 auto; position:relative;}
   
-  /* Header Layout for Logo & Text */
   .header-content {
     display: flex;
     align-items: center;
@@ -285,53 +284,62 @@
   }
 
   /* ==============================================================
-     COMPACT ADAPTIVE PDF & PRINT STYLES
+     A4 PORTRAIT COLOR PDF & PRINT STYLES (FIT TO 1 PAGE)
   ============================================================== */
   @media print {
-    @page { size: landscape; margin: 10mm; }
+    @page { 
+      size: A4 portrait; /* Set to Portrait A4 */
+      margin: 8mm; /* Reduced margins to fit more content */
+    }
     
-    body { background: #fff !important; color: #000 !important; padding: 0 !important; }
-    header.top { background: #fff !important; color: #000 !important; padding: 10px 0 !important; border-bottom: 2px solid #333; }
-    header.top::after { display: none; }
-    
-    .logo-box { border-color: #000; color: #000 !important; background: none !important; }
-    .logo-box svg { color: #000 !important; stroke: #000 !important; }
-    .eyebrow { color: #333 !important; }
-    h1 { color: #000 !important; font-size: 20px !important; margin-bottom: 4px; }
-    .sub { color: #333 !important; font-size: 12px !important; max-width: none; }
-    
+    html, body { 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; /* Forces browsers to print colors */
+      background: var(--paper) !important;
+    }
+
     /* Hiding Interactive & Unnecessary UI elements */
     .toolbar, .admin-only, .add-btn, footer.note, #syncStatus { display: none !important; }
+
+    /* Compact Header */
+    header.top { padding: 12px 16px !important; border-radius: 8px !important; margin-bottom: 12px !important; }
+    .logo-box { padding: 8px !important; width: 36px; height: 36px; }
+    .logo-box svg { width: 20px; height: 20px; }
+    .header-content { gap: 12px !important; }
+    .eyebrow { font-size: 12px !important; margin-bottom: 2px !important; }
+    h1 { font-size: 18px !important; margin-bottom: 2px !important; }
+    .sub { font-size: 11px !important; }
     
-    main { padding: 10px 0 !important; max-width: 100% !important; margin: 0 !important; }
+    main { padding: 0 10px !important; max-width: 100% !important; margin: 0 !important; }
     
     /* Compact Dashboard Cards */
-    .cards { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 15px !important; }
-    .card { box-shadow: none !important; border: 1px solid #666 !important; padding: 8px !important; break-inside: avoid; }
-    .card.overall { background: #f0f0f0 !important; color: #000 !important; border-color: #666 !important; }
-    .card.overall .label, .card.overall .figures .of { color: #333 !important; }
-    .bar, .pending-tag { display: none !important; }
-    .figures .big { font-size: 18px !important; color: #000 !important; }
-    .dash-title { margin-bottom: 8px !important; }
+    .dash-title { margin-bottom: 6px !important; }
+    .dash-title h2 { font-size: 13px !important; }
+    .cards { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 12px !important; }
+    .card { padding: 8px 10px !important; border-radius: 6px !important; box-shadow: none !important; border: 1px solid var(--rule) !important; }
+    .card .label { font-size: 10px !important; margin-bottom: 4px !important; }
+    .card .figures .big { font-size: 18px !important; }
+    .card .figures .of { font-size: 10px !important; }
+    .bar { height: 4px !important; margin-top: 6px !important; }
+    .pending-tag { font-size: 9px !important; padding: 2px 6px !important; top: 6px !important; right: 6px !important; }
     
-    /* Compact Table Styling */
-    .table-wrap { overflow: visible !important; border: none !important; box-shadow: none !important; margin-bottom: 0; }
-    table { border-collapse: collapse; width: 100%; border: 1px solid #333; min-width: auto; }
-    thead th { background: #e0e0e0 !important; color: #000 !important; border: 1px solid #333; padding: 6px !important; font-size: 12px !important; }
-    tbody tr { border-bottom: 1px solid #333; page-break-inside: avoid; }
-    td { border: 1px solid #333; padding: 4px 6px !important; font-size: 11px !important; }
-    .school-name { font-size: 12px; }
+    /* Compact Table Styling to fit on one page */
+    .table-wrap { overflow: visible !important; border: 1px solid var(--rule) !important; box-shadow: none !important; margin-bottom: 0 !important; border-radius: 6px !important; }
+    table { width: 100% !important; min-width: auto !important; font-size: 11px !important; }
+    thead th { padding: 6px !important; font-size: 10px !important; }
+    tbody tr { border-bottom: 1px solid #e2ddcf !important; page-break-inside: avoid; }
+    td { padding: 4px 6px !important; }
+    .sr { font-size: 10px !important; }
+    .school-name { font-size: 11px !important; }
+    .udise { font-size: 9px !important; }
     
-    /* Checkbox Print Replacements (Ticks/Crosses instead of raw inputs) */
-    .chk-wrap input[type=checkbox] { display: none; }
-    .chk-wrap input[type=checkbox]:checked + .chk-label::before { content: "✅ "; font-size: 11px; }
-    .chk-wrap input[type=checkbox]:not(:checked) + .chk-label::before { content: "❌ "; font-size: 11px; }
-    .chk-label { font-size: 12px !important; color: #000 !important; font-weight: bold; }
+    /* Colored Text instead of Checkboxes for cleaner Print */
+    .chk-wrap input[type=checkbox] { display: none !important; }
+    .chk-wrap input[type=checkbox]:checked + .chk-label { color: var(--ok) !important; font-weight: 800 !important; font-size: 11px !important; }
+    .chk-wrap input[type=checkbox]:not(:checked) + .chk-label { color: var(--pend) !important; font-weight: 800 !important; font-size: 11px !important; }
     
-    /* Simplified Status Badges */
-    .status-badge { border: 1px solid #000; background: none !important; padding: 2px 4px !important; color: #000 !important; font-size: 11px !important; }
-    .status-badge.done::before { content: "✅ "; }
-    .status-badge.pending::before { content: "⏳ "; }
+    /* Compact Status Badges */
+    .status-badge { padding: 2px 6px !important; font-size: 10px !important; }
     
     .del-col-btn, .row-actions { display: none !important; }
   }
@@ -401,7 +409,7 @@
   </footer>
 </main>
 
-<!-- Modals remain the same... -->
+<!-- Modals -->
 <div class="overlay" id="pinOverlay" style="display:none;">
   <div class="modal">
     <h3 id="pinModalTitle">अॅडमिन अनलॉक</h3>
