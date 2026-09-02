@@ -230,6 +230,18 @@
   .sr{font-family:'Space Mono',monospace; color:var(--muted); font-size:12.5px;}
   .school-name{font-weight:600; color:var(--ink);}
   .udise{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px;}
+  
+  /* Section Header Styling */
+  .section-header td {
+    background: #e2ddcf;
+    color: var(--navy);
+    font-weight: 800;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    border-bottom: 2px solid var(--navy);
+    text-transform: uppercase;
+  }
+  
   .chk-wrap{display:flex; flex-direction:column; align-items:center; gap:2px;}
   .chk-wrap input[type=checkbox]{
     width:19px; height:19px; accent-color:var(--ok); cursor:pointer;
@@ -312,7 +324,6 @@
       background: var(--paper) !important;
     }
 
-    /* Hide UI elements and WhatsApp Buttons during Print */
     .toolbar, .admin-only, .add-btn, footer.note, #syncStatus, .wa-topic-btn { display: none !important; }
 
     header.top { padding: 12px 16px !important; border-radius: 8px !important; margin-bottom: 12px !important; }
@@ -344,6 +355,9 @@
     .sr { font-size: 10px !important; }
     .school-name { font-size: 11px !important; }
     .udise { font-size: 9px !important; }
+    
+    /* Section Headers in Print */
+    .section-header td { background: #e0e0e0 !important; color: #000 !important; border-bottom: 1px solid #333 !important; font-weight: 800 !important; padding: 6px 12px !important; font-size: 11px !important; }
     
     .chk-wrap input[type=checkbox] { display: none !important; }
     .chk-wrap input[type=checkbox]:checked + .chk-label { color: var(--ok) !important; font-weight: 800 !important; font-size: 11px !important; }
@@ -389,13 +403,10 @@
       <button data-filter="done">पूर्ण प्राप्त</button>
     </div>
 
-    <!-- PDF Download Button -->
     <button class="add-btn" id="downloadPdfBtn" style="background:var(--ok);">📄 PDF डाउनलोड करा</button>
     
-    <!-- Cloud Status Indicator -->
     <div id="syncStatus" class="sync-status" style="margin-right:auto; margin-left: 10px;">🔄 डेटा लोड करत आहे...</div>
 
-    <!-- Buttons -->
     <button class="add-btn admin-toggle-btn" id="adminToggleBtn" style="margin-left:auto;">🔒 अॅडमिन अनलॉक करा</button>
     <button class="add-btn add-col-btn admin-only" id="changePinBtn" style="background:#a97142;">🔑 पिन बदला</button>
     <button class="add-btn add-col-btn admin-only" id="addColBtn">+ नवीन रकाना जोडा</button>
@@ -489,32 +500,77 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwiQeuLh5fHKUXlpwQOeJQI
 let ADMIN_PIN = '1234'; 
 let isAdmin = false;
 
+// Complete Seed Data mapped into proper sections without duplication
 const seedSchools = [
-  ["27270101612","सी.पी.एस. रविवार पेठ"],
-  ["27270101613","जि.प.प्रा.शा. क्र. २, अंबाजोगाई"],
-  ["27270102401","जि.प.प्रा.शा. साकुड (मराठी)"],
-  ["27270102404","जि.प.प्रा.शा. साकुड (उर्दू)"],
-  ["27270102501","जि.प.प्रा.शा. काळवटी तांडा क्र. १"],
-  ["27270102502","जि.प.प्रा.शा. काळवटी तांडा क्र. ३"],
-  ["27270102503","जि.प.प्रा.शा. भीमाई वस्ती"],
-  ["27270102601","जि.प.प्रा.शा. काळवटी तांडा क्र. २"],
-  ["27270102701","जि.प.प्रा.शा. मांडवा पठाण"],
-  ["27270102801","जि.प.प्रा.शा. मांडवा तांडा"],
-  ["27270102901","जि.प.प्रा.शा. पोलेवाडी"],
-  ["27270103001","जि.प.प्रा.शा. नागझरी वसाहत"],
-  ["27270103101","जि.प.प्रा.शा. शेपवाडी"],
-  ["27270103102","जि.प.प्रा.शा. सह्याद्री नगर शेपवाडी"],
-  ["27270103201","जि.प.प्रा.शा. पिंपळा धायगुडा (मराठी)"],
-  ["27270103203","जि.प.प्रा.शा. पिंपळा धायगुडा (उर्दू)"],
-  ["27270103301","जि.प.प्रा.शा. वरवटी"],
-  ["27270103303","जि.प.प्रा.शा. उघडे वस्ती (वरवटी)"],
-  ["27270103401","जि.प.प्रा.शा. तलाव पाटी"],
-  ["27270103501","जि.प.प्रा.शा. अंबलवाडी"],
-  ["27270103502","जि. प. प्रा.शा. गोल्टावस्ती"],
-  ["27270103701","जि.प.प्रा.शा. गिरवली आपेट"],
-  ["27270103801","जि.प.हा.स्कू. गिरवली"]
+  ["27270101613","जि.प.प्रा.शा. क्र. २, अंबाजोगाई","इयत्ता १ ते ४"],
+  ["27270101620","मिलिया प्रा. शा. अंबा","इयत्ता १ ते ४"],
+  ["27270101695","नारायणा वर्ल्ड स्कूल अंबाजोगाई","इयत्ता १ ते ४"],
+  ["27270102401","जि.प.प्रा.शा. साकुड (मराठी)","इयत्ता १ ते ४"],
+  ["27270102503","जि.प.प्रा.शा. भीमाई वस्ती","इयत्ता १ ते ४"],
+  ["27270102601","जि.प.प्रा.शा. काळवटी तांडा क्र. २","इयत्ता १ ते ४"],
+  ["27270102801","जि.प.प्रा.शा. मांडवा तांडा","इयत्ता १ ते ४"],
+  ["27270103001","जि.प.प्रा.शा. नागझरी वसाहत","इयत्ता १ ते ४"],
+  ["27270103002","कै. दादाराव कराड प्रा. शा. नागझरी","इयत्ता १ ते ४"],
+  ["27270103102","जि.प.प्रा.शा. सह्याद्री नगर शेपवाडी","इयत्ता १ ते ४"],
+  ["27270103301","जि.प.प्रा.शा. वरवटी","इयत्ता १ ते ४"],
+  ["27270103303","जि.प.प्रा.शा. उघडे वस्ती (वरवटी)","इयत्ता १ ते ४"],
+  ["27270103401","जि.प.प्रा.शा. तलाव पाटी","इयत्ता १ ते ४"],
+  ["27270103701","जि.प.प्रा.शा. गिरवली आपेट","इयत्ता १ ते ४"],
+  ["27270100109","खोलेश्वर जीनियस सीबीएससी स्कूल अंबाजोगाई","इयत्ता १ ते ५"],
+  ["27270101688","छत्रपती संभाजी राजे ग्लोबल स्कूल आणि ज्युनियर कॉलेज जोगाईवाडी","इयत्ता १ ते ५"],
+  ["27270102501","जि.प.प्रा.शा. काळवटी तांडा क्र. १","इयत्ता १ ते ५"],
+  ["27270102502","जि.प.प्रा.शा. काळवटी तांडा क्र. ३","इयत्ता १ ते ५"],
+  ["27270102901","जि.प.प्रा.शा. पोलेवाडी","इयत्ता १ ते ५"],
+  ["27270103502","जि. प. प्रा.शा. गोल्टावस्ती","इयत्ता १ ते ५"],
+  ["27270102405","श्री साई समर्थ प्रा. शा.","इयत्ता १ ते ७"],
+  ["27270101612","सी.पी.एस. रविवार पेठ","इयत्ता १ ते ७"],
+  ["27270101618","कै. देवराव बालाजी गणगे योगेश्वरी नूतन प्राथमिक विभाग अंबाजोगाई","इयत्ता १ ते ७"],
+  ["27270101619","नेताजी सुभाषचंद्र प्रा. शा. अंबा","इयत्ता १ ते ७"],
+  ["27270101626","खोलेश्वर प्रा. शा. अंबाजोगाई","इयत्ता १ ते ७"],
+  ["27270101628","उर्दू प्रा. शा. रविवार पेठ अंबाजोगाई","इयत्ता १ ते ७"],
+  ["27270101629","न्यू इंग्लिश प्रा. शा. अंबा","इयत्ता १ ते ७"],
+  ["27270101633","घाट नागनाथ प्रा. शा. अंबा","इयत्ता १ ते ७"],
+  ["27270101660","श्री व्यंकटेश विद्या मंदिर प्रा. शा. अंबा","इयत्ता १ ते ७"],
+  ["27270102701","जि.प.प्रा.शा. मांडवा पठाण","इयत्ता १ ते ७"],
+  ["27270103101","जि.प.प्रा.शा. शेपवाडी","इयत्ता १ ते ७"],
+  ["27270103201","जि.प.प्रा.शा. पिंपळा धायगुडा (मराठी)","इयत्ता १ ते ७"],
+  ["27270103203","जि.प.प्रा.शा. पिंपळा धायगुडा (उर्दू)","इयत्ता १ ते ७"],
+  ["27270103501","जि.प.प्रा.शा. अंबलवाडी","इयत्ता १ ते ७"],
+  ["27270105504","सोमेश्वर उर्दू प्राथमिक शाळा पिंपळा धायगुडा अंबाजोगाई","इयत्ता १ ते ७"],
+  ["27270100105","जिजाऊ स्कूल भगवानबाबा चौक अंबाजोगाई","इयत्ता १ ते ८"],
+  ["27270101623","नूरजहाँ उर्दू प्राथमिक शाळा अंबाजोगाई","इयत्ता १ ते ८"],
+  ["27270101685","सुलावंतीबाई बाळासाहेब शिंदे प्रा. शा. इंग्लिश अंबाजोगाई","इयत्ता १ ते ८"],
+  ["27270102404","जि.प.प्रा.शा. साकुड (उर्दू)","इयत्ता १ ते ८"],
+  ["27270103802","तुकाराम पाटील प्रा. शा. गिरवली","इयत्ता १ ते ८"],
+  ["27270103803","जिजाऊ इंटरनॅशनल स्कूल गिरवली (बी)","इयत्ता १ ते ८"],
+  ["27270101669","प्रमोदजी महाजन न्यू इंग्लिश स्कूल","इयत्ता १ ते १०"],
+  ["27270103801","जि.प.हा.स्कू. गिरवली","इयत्ता १ ते १०"],
+  ["27270100107","मुक्तांगण विद्यालय गिरवली रोड अंबाजोगाई","इयत्ता १ ते १२"],
+  ["27270100110","विझडम इंग्लिश स्कूल ज्युनियर कॉलेज अंबाजोगाई","इयत्ता १ ते १२"],
+  ["27270100111","स्कॉलर्स एज्युकेशन पॅलेस अंबाजोगाई","इयत्ता १ ते १२"],
+  ["27270101654","न्यू विजन इंग्लिश स्कूल अंबाजोगाई","इयत्ता १ ते १२"],
+  ["27270101690","एरा इंटरनॅशनल स्कूल अंबाजोगाई","इयत्ता १ ते १२"],
+  ["27270103003","सरस्वती पब्लिक स्कूल नागझरी","इयत्ता १ ते १२"],
+  ["27270103702","प्रेषिता इंटरनॅशनल स्कूल आणि ज्युनियर कॉलेज","इयत्ता १ ते १२"],
+  ["27270101615","डॉ. राम भालचंद्र हायस्कूल अंबाजोगाई","इयत्ता ५ ते १०"],
+  ["27270101635","योगेश्वरी नूतन हायस्कूल अंबा","इयत्ता ५ ते १०"],
+  ["27270101636","श्रीमती गोदावरीबाई कुंकुलोळ योगेश्वरी कन्या हायस्कूल अंबाजोगाई","इयत्ता ५ ते १०"],
+  ["27270101639","नेताजी सुभाष हायस्कूल अंबा","इयत्ता ५ ते १०"],
+  ["27270101643","खोलेश्वर हायस्कूल अंबाजोगाई","इयत्ता ५ ते १०"],
+  ["27270101648","कै. दादाराव कराड हायस्कूल शेपवाडी","इयत्ता ५ ते १०"],
+  ["27270102402","सरस्वती हायस्कूल साकुड","इयत्ता ५ ते १०"],
+  ["27270102702","वेनगंगा हायस्कूल मांडवा पठाण","इयत्ता ५ ते १०"],
+  ["27270103202","अल्लाम सिद्दीकी अल. उर्दू हायस्कूल पिंपळा धायगुडा","इयत्ता ५ ते १०"],
+  ["27270103302","वसंतराव नाईक विद्यालय वरवटी","इयत्ता ५ ते १०"],
+  ["27270101614","जोधाप्रसाद मोदी माध्यमिक व उच्च माध्यमिक शाळा अंबाजोगाई","इयत्ता ५ ते १२"],
+  ["27270101640","मिलिया हायस्कूल अंबा","इयत्ता ५ ते १२"],
+  ["27270101661","श्री व्यंकटेश विद्या मंदिर हायस्कूल अंबा","इयत्ता ५ ते १२"],
+  ["27270101305","छत्रपती संभाजी राजे ग्लोबल स्कूल जोगाईवाडी","इयत्ता ६ ते १२"],
+  ["27270101647","मन्सूर हायस्कूल रविवार पेठ अंबाजोगाई","इयत्ता ८ ते १०"],
+  ["27270101649","सावरकर विद्यालय पिंपळा धायगुडा","इयत्ता ८ ते १०"],
+  ["27270101653","न्यू इंग्लिश हायस्कूल गुरुवार पेठ अंबाजोगाई","इयत्ता ८ ते १०"]
 ].map((s,i)=>({
-  id: 'sch_'+i, udise: s[0], name: s[1], shalabahya: false, snaChecker: false, snaMaker: false
+  id: 'sch_seed_'+i, udise: s[0], name: s[1], section: s[2], shalabahya: false, snaChecker: false, snaMaker: false
 }));
 
 const seedColumns = [
@@ -548,6 +604,24 @@ async function loadData(){
         columns = parsed.columns || [];
         if(parsed.pin) { ADMIN_PIN = parsed.pin; }
       }
+      
+      // Auto-merge logic to dynamically inject new detailed schools if they are missing
+      let addedNew = false;
+      seedSchools.forEach(seed => {
+        let existing = schools.find(s => s.udise === seed.udise);
+        if(!existing) {
+          schools.push(seed);
+          addedNew = true;
+        } else {
+          // ensure section attribute is updated for old data records
+          if(!existing.section) {
+            existing.section = seed.section;
+            addedNew = true;
+          }
+        }
+      });
+      if(addedNew) await persist(); // Sync background updates
+      
     } else {
       schools = seedSchools;
       columns = [...seedColumns];
@@ -616,7 +690,6 @@ function renderDashboard(){
 
   const cards = [];
   
-  // Overall Dashboard Card (With WA Button)
   cards.push(`
     <div class="card overall">
       <span class="pending-tag">${schools.length - fullyDone} प्रलंबित</span>
@@ -628,7 +701,6 @@ function renderDashboard(){
       </div>
     </div>`);
 
-  // Topic-wise Dashboard Cards (With WA Button)
   columns.forEach(c => {
     const {received, pending} = fieldCounts(c.id);
     cards.push(`
@@ -679,24 +751,49 @@ function render(){
     document.getElementById('emptyMsg').style.display='block';
   } else {
     document.getElementById('emptyMsg').style.display='none';
-    tbody.innerHTML = filtered.map((s, idx)=>{
-      const complete = columns.length > 0 && columns.every(c => s[c.id]);
-      const dynamicCells = columns.map(c => `<td class="center">${chk(s, c.id)}</td>`).join('');
+    
+    // Grouping by Section (इयत्ता)
+    const groups = {};
+    filtered.forEach(s => {
+      const sec = s.section || 'इतर शाळा';
+      if(!groups[sec]) groups[sec] = [];
+      groups[sec].push(s);
+    });
 
-      return `
-      <tr>
-        <td class="sr">${idx+1}</td>
-        <td>
-          <div class="school-name">${escapeHtml(s.name)}</div>
-          ${s.udise?`<div class="udise">UDISE ${escapeHtml(s.udise)}</div>`:''}
-        </td>
-        ${dynamicCells}
-        <td class="center"><span class="status-badge ${complete?'done':'pending'}">${complete?'पूर्ण प्राप्त':'प्रलंबित'}</span></td>
-        <td class="center row-actions admin-only">
-          <button title="काढून टाका" data-del="${s.id}" aria-label="शाळा काढून टाका">✕</button>
-        </td>
-      </tr>`;
-    }).join('');
+    let html = '';
+    let globalIdx = 1;
+    const totalCols = columns.length + 4;
+
+    for (const [sec, secSchools] of Object.entries(groups)) {
+      html += `
+        <tr class="section-header">
+          <td colspan="${totalCols}">
+            📂 गट: ${escapeHtml(sec)}
+          </td>
+        </tr>
+      `;
+      
+      secSchools.forEach(s => {
+        const complete = columns.length > 0 && columns.every(c => s[c.id]);
+        const dynamicCells = columns.map(c => `<td class="center">${chk(s, c.id)}</td>`).join('');
+
+        html += `
+        <tr>
+          <td class="sr">${globalIdx++}</td>
+          <td>
+            <div class="school-name">${escapeHtml(s.name)}</div>
+            ${s.udise?`<div class="udise">UDISE ${escapeHtml(s.udise)}</div>`:''}
+          </td>
+          ${dynamicCells}
+          <td class="center"><span class="status-badge ${complete?'done':'pending'}">${complete?'पूर्ण प्राप्त':'प्रलंबित'}</span></td>
+          <td class="center row-actions admin-only">
+            <button title="काढून टाका" data-del="${s.id}" aria-label="शाळा काढून टाका">✕</button>
+          </td>
+        </tr>`;
+      });
+    }
+    
+    tbody.innerHTML = html;
   }
 }
 
@@ -704,12 +801,10 @@ function escapeHtml(str){
   return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-// PDF Download Initialization
 document.getElementById('downloadPdfBtn').addEventListener('click', () => {
   window.print();
 });
 
-// Admin Pin Logics
 const pinOverlay = document.getElementById('pinOverlay');
 const inPin = document.getElementById('inPin');
 const pinError = document.getElementById('pinError');
@@ -885,7 +980,8 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const udise = document.getElementById('inUdise').value.trim();
   if(!name){ document.getElementById('inName').focus(); return; }
   
-  const newSchool = { id: 'sch_'+Date.now(), name, udise };
+  // Set default section to 'इतर शाळा' for manually added records
+  const newSchool = { id: 'sch_'+Date.now(), name, udise, section: 'इतर शाळा' };
   columns.forEach(c => { newSchool[c.id] = false; });
   schools.push(newSchool);
   
@@ -917,7 +1013,6 @@ document.getElementById('colSaveBtn').addEventListener('click', async ()=>{
   render();
 });
 
-// Dynamic WhatsApp Share Logic for Topics
 document.getElementById('dashCards').addEventListener('click', (e) => {
   const btn = e.target.closest('.wa-topic-btn');
   if (!btn) return;
