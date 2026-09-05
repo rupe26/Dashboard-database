@@ -214,7 +214,7 @@
     background:var(--card); border:1px solid var(--rule); border-radius:10px;
     overflow:auto; box-shadow:var(--shadow); margin-bottom:20px;
   }
-  table{width:100%; border-collapse:collapse; font-size:14px; min-width:800px;}
+  table{width:100%; border-collapse:collapse; font-size:14px; min-width:800px; table-layout: auto;}
   thead th{
     background:#eee9dd; color:var(--navy);
     text-align:left; padding:11px 12px; font-size:12px; font-weight:700;
@@ -231,6 +231,25 @@
   .school-name{font-weight:600; color:var(--ink);}
   .udise{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px;}
   
+  /* Autofit Columns Class */
+  .col-dynamic {
+    width: 1%;
+    white-space: nowrap;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  /* Hidden Row Styling (Admin Only) */
+  .hidden-row {
+    opacity: 0.55;
+    filter: grayscale(100%);
+    background: #f9f9f9;
+  }
+  .hidden-badge {
+    background: var(--pend); color: #fff; font-size: 10px; padding: 2px 6px; 
+    border-radius: 4px; margin-left: 8px; vertical-align: middle;
+  }
+
   /* Section Header Styling */
   .section-header td {
     background: #e2ddcf;
@@ -258,9 +277,11 @@
   }
   .status-badge.done{background:var(--ok-bg); color:var(--ok);}
   .status-badge.pending{background:var(--pend-bg); color:var(--pend);}
+  
+  .row-actions { display: flex; justify-content: center; gap: 8px; }
   .row-actions button{
     border:none; background:transparent; cursor:pointer; color:var(--muted); font-size:16px;
-    padding:2px 6px; border-radius:4px;
+    padding:4px 6px; border-radius:4px;
   }
   .row-actions button:hover{color:var(--pend); background:var(--pend-bg);}
   
@@ -348,9 +369,13 @@
     .pending-tag { font-size: 9px !important; padding: 2px 6px !important; top: 6px !important; right: 6px !important; }
     
     .table-wrap { overflow: visible !important; border: 1px solid var(--rule) !important; box-shadow: none !important; margin-bottom: 0 !important; border-radius: 6px !important; }
-    table { width: 100% !important; min-width: auto !important; font-size: 11px !important; }
+    table { width: 100% !important; min-width: auto !important; font-size: 11px !important; table-layout: auto; }
     thead th { padding: 6px !important; font-size: 10px !important; }
     tbody tr { border-bottom: 1px solid #e2ddcf !important; page-break-inside: avoid; }
+    
+    /* Ensure hidden rows don't print unless you really want them to */
+    .hidden-row { display: none !important; }
+
     td { padding: 4px 6px !important; }
     .sr { font-size: 10px !important; }
     .school-name { font-size: 11px !important; }
@@ -570,7 +595,7 @@ const seedSchools = [
   ["27270101649","सावरकर विद्यालय पिंपळा धायगुडा","इयत्ता ८ ते १०"],
   ["27270101653","न्यू इंग्लिश हायस्कूल गुरुवार पेठ अंबाजोगाई","इयत्ता ८ ते १०"]
 ].map((s,i)=>({
-  id: 'sch_seed_'+i, udise: s[0], name: s[1], section: s[2], shalabahya: false, snaChecker: false, snaMaker: false
+  id: 'sch_seed_'+i, udise: s[0], name: s[1], section: s[2], hidden: false
 }));
 
 const seedColumns = [
@@ -583,6 +608,11 @@ let schools = [];
 let columns = [];
 let currentFilter = 'all';
 let searchTerm = '';
+
+// Helper to filter out hidden schools for users
+function getActiveSchools() {
+  return schools.filter(s => !s.hidden);
+}
 
 async function loadData(){
   const syncStatus = document.getElementById('syncStatus');
@@ -605,7 +635,6 @@ async function loadData(){
         if(parsed.pin) { ADMIN_PIN = parsed.pin; }
       }
       
-      // Auto-merge logic to dynamically inject new detailed schools if they are missing
       let addedNew = false;
       seedSchools.forEach(seed => {
         let existing = schools.find(s => s.udise === seed.udise);
@@ -613,14 +642,13 @@ async function loadData(){
           schools.push(seed);
           addedNew = true;
         } else {
-          // ensure section attribute is updated for old data records
           if(!existing.section) {
             existing.section = seed.section;
             addedNew = true;
           }
         }
       });
-      if(addedNew) await persist(); // Sync background updates
+      if(addedNew) await persist(); 
       
     } else {
       schools = seedSchools;
@@ -663,38 +691,40 @@ async function persist(){
 }
 
 function fieldCounts(fieldId){
-  const received = schools.filter(s => s[fieldId]).length;
-  return {received, pending: schools.length - received};
+  const activeSchools = getActiveSchools();
+  const received = activeSchools.filter(s => s[fieldId]).length;
+  return {received, pending: activeSchools.length - received};
 }
 
 function renderTableHead(){
   const tr = document.getElementById('theadRow');
   tr.innerHTML = `
-    <th>अ.क्र.</th>
+    <th style="width: 50px;">अ.क्र.</th>
     <th>शाळेचे नाव</th>
     ${columns.map(c => `
-      <th class="center">
+      <th class="center col-dynamic">
         ${escapeHtml(c.label)}
         <br><button class="del-col-btn admin-only" data-col="${c.id}" aria-label="रकाना काढा" title="हा रकाना काढून टाका">✕</button>
       </th>
     `).join('')}
-    <th class="center">एकूण स्थिती</th>
-    <th class="center admin-only"></th>
+    <th class="center col-dynamic">एकूण स्थिती</th>
+    <th class="center admin-only col-dynamic" style="min-width: 80px;">कृती</th>
   `;
 }
 
 function renderDashboard(){
-  document.getElementById('totalCount').textContent = schools.length;
-  const total = schools.length || 1;
-  const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
+  const activeSchools = getActiveSchools();
+  document.getElementById('totalCount').textContent = activeSchools.length;
+  const total = activeSchools.length || 1;
+  const fullyDone = activeSchools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
 
   const cards = [];
   
   cards.push(`
     <div class="card overall">
-      <span class="pending-tag">${schools.length - fullyDone} प्रलंबित</span>
+      <span class="pending-tag">${activeSchools.length - fullyDone} प्रलंबित</span>
       <div class="label">सर्व माहिती प्राप्त (एकूण)</div>
-      <div class="figures"><span class="big">${fullyDone}</span><span class="of">/ ${schools.length}</span></div>
+      <div class="figures"><span class="big">${fullyDone}</span><span class="of">/ ${activeSchools.length}</span></div>
       <div class="bar-container">
         <div class="bar"><div class="bar-fill" style="width:${(fullyDone/total*100).toFixed(0)}%"></div></div>
         <button class="wa-topic-btn" data-topic="overall" title="एकूण अहवाल WhatsApp वर पाठवा">💬 शेअर</button>
@@ -707,7 +737,7 @@ function renderDashboard(){
       <div class="card">
         <span class="pending-tag">${pending} प्रलंबित</span>
         <div class="label">${escapeHtml(c.label)}</div>
-        <div class="figures"><span class="big">${received}</span><span class="of">/ ${schools.length}</span></div>
+        <div class="figures"><span class="big">${received}</span><span class="of">/ ${activeSchools.length}</span></div>
         <div class="bar-container">
           <div class="bar"><div class="bar-fill" style="width:${(received/total*100).toFixed(0)}%"></div></div>
           <button class="wa-topic-btn" data-topic="${c.id}" data-label="${escapeHtml(c.label)}" title="या विषयाचा अहवाल WhatsApp वर पाठवा">💬 शेअर</button>
@@ -744,7 +774,15 @@ function render(){
   renderDashboard();
   
   const tbody = document.getElementById('tbody');
-  const filtered = schools.filter(s => matchesFilter(s) && matchesSearch(s));
+  const baseList = isAdmin ? schools : getActiveSchools();
+  const filtered = baseList.filter(s => matchesFilter(s) && matchesSearch(s));
+
+  // Sort: Alphabetically by Name (Primary), then by UDISE (Secondary)
+  filtered.sort((a, b) => {
+    let nameCmp = a.name.localeCompare(b.name, 'mr');
+    if (nameCmp !== 0) return nameCmp;
+    return (a.udise || '').localeCompare(b.udise || '');
+  });
 
   if(filtered.length === 0){
     tbody.innerHTML='';
@@ -775,19 +813,25 @@ function render(){
       
       secSchools.forEach(s => {
         const complete = columns.length > 0 && columns.every(c => s[c.id]);
-        const dynamicCells = columns.map(c => `<td class="center">${chk(s, c.id)}</td>`).join('');
+        const dynamicCells = columns.map(c => `<td class="center col-dynamic">${chk(s, c.id)}</td>`).join('');
+
+        const hiddenClass = s.hidden ? 'hidden-row' : '';
+        const hiddenBadge = s.hidden ? '<span class="hidden-badge">लपविलेली</span>' : '';
 
         html += `
-        <tr>
+        <tr class="${hiddenClass}">
           <td class="sr">${globalIdx++}</td>
           <td>
-            <div class="school-name">${escapeHtml(s.name)}</div>
+            <div class="school-name">${escapeHtml(s.name)} ${hiddenBadge}</div>
             ${s.udise?`<div class="udise">UDISE ${escapeHtml(s.udise)}</div>`:''}
           </td>
           ${dynamicCells}
-          <td class="center"><span class="status-badge ${complete?'done':'pending'}">${complete?'पूर्ण प्राप्त':'प्रलंबित'}</span></td>
-          <td class="center row-actions admin-only">
-            <button title="काढून टाका" data-del="${s.id}" aria-label="शाळा काढून टाका">✕</button>
+          <td class="center col-dynamic"><span class="status-badge ${complete?'done':'pending'}">${complete?'पूर्ण':'प्रलंबित'}</span></td>
+          <td class="center row-actions admin-only col-dynamic">
+            <button title="${s.hidden ? 'शाळा दर्शवा (Unhide)' : 'शाळा लपवा (Hide)'}" data-hide="${s.id}">
+              ${s.hidden ? '👁️' : '🙈'}
+            </button>
+            <button title="कायमचे काढून टाका" data-del="${s.id}">✕</button>
           </td>
         </tr>`;
       });
@@ -921,6 +965,7 @@ document.getElementById('tbody').addEventListener('change', async (e)=>{
 });
 
 document.getElementById('tbody').addEventListener('click', async (e)=>{
+  // Handle Delete
   const delId = e.target.closest('[data-del]');
   if(delId){
     if (!isAdmin) return; 
@@ -929,8 +974,21 @@ document.getElementById('tbody').addEventListener('click', async (e)=>{
     if (schoolDef) {
       itemToDelete = { type: 'school', id: id };
       deleteTitle.textContent = 'शाळा काढून टाका';
-      deleteText.innerHTML = `<strong>${escapeHtml(schoolDef.name)}</strong><br>ही शाळा यादीतून नक्की काढून टाकायची आहे का?`;
+      deleteText.innerHTML = `<strong>${escapeHtml(schoolDef.name)}</strong><br>ही शाळा यादीतून कायमची काढून टाकायची आहे का?`;
       deleteOverlay.style.display = 'flex';
+    }
+  }
+  
+  // Handle Hide/Unhide
+  const hideBtn = e.target.closest('[data-hide]');
+  if(hideBtn){
+    if (!isAdmin) return;
+    const id = hideBtn.getAttribute('data-hide');
+    const schoolDef = schools.find(s => s.id === id);
+    if (schoolDef) {
+      schoolDef.hidden = !schoolDef.hidden; // Toggle Hidden Status
+      await persist();
+      render();
     }
   }
 });
@@ -980,8 +1038,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const udise = document.getElementById('inUdise').value.trim();
   if(!name){ document.getElementById('inName').focus(); return; }
   
-  // Set default section to 'इतर शाळा' for manually added records
-  const newSchool = { id: 'sch_'+Date.now(), name, udise, section: 'इतर शाळा' };
+  const newSchool = { id: 'sch_'+Date.now(), name, udise, section: 'इतर शाळा', hidden: false };
   columns.forEach(c => { newSchool[c.id] = false; });
   schools.push(newSchool);
   
@@ -1019,13 +1076,14 @@ document.getElementById('dashCards').addEventListener('click', (e) => {
 
   const topicId = btn.dataset.topic;
   const topicLabel = btn.dataset.label;
-  const total = schools.length;
+  const activeSchools = getActiveSchools();
+  const total = activeSchools.length;
 
   let waMessage = "";
   let pendingSchools = [];
 
   if (topicId === 'overall') {
-    const fullyDone = schools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
+    const fullyDone = activeSchools.filter(s => columns.length > 0 && columns.every(c => s[c.id])).length;
     const pendingCount = total - fullyDone;
 
     waMessage += `*📊 माहिती संकलन सद्यस्थिती (एकूण अहवाल)*\n\n`;
@@ -1034,9 +1092,9 @@ document.getElementById('dashCards').addEventListener('click', (e) => {
     waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
     waMessage += `------------------------\n`;
 
-    pendingSchools = schools.filter(s => columns.length === 0 || !columns.every(c => s[c.id]));
+    pendingSchools = activeSchools.filter(s => columns.length === 0 || !columns.every(c => s[c.id]));
   } else {
-    const received = schools.filter(s => s[topicId]).length;
+    const received = activeSchools.filter(s => s[topicId]).length;
     const pendingCount = total - received;
 
     waMessage += `*📊 विषयनिहाय माहिती संकलन अहवाल*\n\n`;
@@ -1046,8 +1104,11 @@ document.getElementById('dashCards').addEventListener('click', (e) => {
     waMessage += `*माहिती प्रलंबित:* ${pendingCount}\n`;
     waMessage += `------------------------\n`;
 
-    pendingSchools = schools.filter(s => !s[topicId]);
+    pendingSchools = activeSchools.filter(s => !s[topicId]);
   }
+
+  // Sort pending schools alphabetically before sending in WA message
+  pendingSchools.sort((a,b) => a.name.localeCompare(b.name, 'mr'));
 
   if(pendingSchools.length > 0) {
     waMessage += `*⏳ प्रलंबित शाळांची यादी:*\n`;
