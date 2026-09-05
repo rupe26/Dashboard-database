@@ -331,64 +331,90 @@
   }
 
   /* ==============================================================
-     A4 PORTRAIT COLOR PDF & PRINT STYLES (FIT TO 1 PAGE)
+     A4 PORTRAIT PURE B&W TABULAR PDF (NO BOXES, NO BUTTONS)
   ============================================================== */
   @media print {
     @page { 
       size: A4 portrait;
-      margin: 8mm; 
+      margin: 15mm; 
     }
     
     html, body { 
-      -webkit-print-color-adjust: exact !important; 
-      print-color-adjust: exact !important;
-      background: var(--paper) !important;
+      background: #fff !important;
+      color: #000 !important;
     }
 
-    .toolbar, .admin-only, .add-btn, footer.note, #syncStatus, .wa-topic-btn { display: none !important; }
+    /* Hide UI elements, buttons, dashboards, cards, and header background */
+    .toolbar, .admin-only, .add-btn, footer.note, #syncStatus, .wa-topic-btn, .cards, .dash-title, .overlay, .logo-box, .header-text .eyebrow { 
+      display: none !important; 
+    }
 
-    header.top { padding: 12px 16px !important; border-radius: 8px !important; margin-bottom: 12px !important; }
-    .logo-box { padding: 8px !important; width: 36px; height: 36px; }
-    .logo-box svg { width: 20px; height: 20px; }
-    .header-content { gap: 12px !important; }
-    .eyebrow { font-size: 12px !important; margin-bottom: 2px !important; }
-    h1 { font-size: 18px !important; margin-bottom: 2px !important; }
-    .sub { font-size: 11px !important; }
+    /* Simplify Header for B&W format */
+    header.top { 
+      background: #fff !important; 
+      color: #000 !important; 
+      padding: 0 0 15px 0 !important; 
+      text-align: center;
+      border: none !important;
+    }
+    header.top::after { display: none !important; }
     
-    main { padding: 0 10px !important; max-width: 100% !important; margin: 0 !important; }
+    h1 { color: #000 !important; font-size: 20px !important; margin-bottom: 5px !important; text-align: center; width: 100%;}
+    .sub { color: #333 !important; font-size: 13px !important; text-align: center; max-width: 100%; }
+    .header-content { display: block !important; text-align: center !important; }
     
-    .dash-title { margin-bottom: 6px !important; }
-    .dash-title h2 { font-size: 13px !important; }
-    .cards { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; margin-bottom: 12px !important; }
-    .card { padding: 8px 10px !important; border-radius: 6px !important; box-shadow: none !important; border: 1px solid var(--rule) !important; }
-    .card .label { font-size: 10px !important; margin-bottom: 4px !important; }
-    .card .figures .big { font-size: 18px !important; }
-    .card .figures .of { font-size: 10px !important; }
-    .bar-container { margin-top: 6px !important; }
-    .bar { height: 4px !important; }
-    .pending-tag { font-size: 9px !important; padding: 2px 6px !important; top: 6px !important; right: 6px !important; }
+    main { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
     
-    .table-wrap { overflow: visible !important; border: 1px solid var(--rule) !important; box-shadow: none !important; margin-bottom: 0 !important; border-radius: 6px !important; }
-    table { width: 100% !important; min-width: auto !important; font-size: 11px !important; table-layout: auto; }
-    thead th { padding: 6px !important; font-size: 10px !important; }
-    tbody tr { border-bottom: 1px solid #e2ddcf !important; page-break-inside: avoid; }
+    /* Strictly B&W Solid Table */
+    .table-wrap { border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; overflow: visible !important; }
+    table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #000 !important; font-size: 12px !important; color: #000 !important; }
     
-    /* Ensure hidden rows don't print unless you really want them to */
+    thead th { 
+      background: #fff !important; 
+      color: #000 !important; 
+      border: 1px solid #000 !important; 
+      padding: 8px !important; 
+      font-weight: bold !important; 
+    }
+    
+    tbody td { 
+      border: 1px solid #000 !important; 
+      padding: 6px 8px !important; 
+      color: #000 !important; 
+      background: #fff !important;
+    }
+    
+    tbody tr { page-break-inside: avoid; }
+    
     .hidden-row { display: none !important; }
+    .school-name { font-size: 13px !important; color: #000 !important; font-weight: bold !important; }
+    .udise { color: #333 !important; }
 
-    td { padding: 4px 6px !important; }
-    .sr { font-size: 10px !important; }
-    .school-name { font-size: 11px !important; }
-    .udise { font-size: 9px !important; }
+    /* Section Headers */
+    .section-header td { 
+      background: #f4f4f4 !important; 
+      color: #000 !important; 
+      border: 1px solid #000 !important; 
+      font-weight: bold !important; 
+      padding: 8px 12px !important; 
+      text-align: left;
+    }
     
-    /* Section Headers in Print */
-    .section-header td { background: #e0e0e0 !important; color: #000 !important; border-bottom: 1px solid #333 !important; font-weight: 800 !important; padding: 6px 12px !important; font-size: 11px !important; }
-    
+    /* Simplify Checkboxes to Pure Text inside cells */
     .chk-wrap input[type=checkbox] { display: none !important; }
-    .chk-wrap input[type=checkbox]:checked + .chk-label { color: var(--ok) !important; font-weight: 800 !important; font-size: 11px !important; }
-    .chk-wrap input[type=checkbox]:not(:checked) + .chk-label { color: var(--pend) !important; font-weight: 800 !important; font-size: 11px !important; }
+    .chk-wrap input[type=checkbox]:checked + .chk-label { color: #000 !important; font-weight: bold !important; font-size: 12px !important; }
+    .chk-wrap input[type=checkbox]:not(:checked) + .chk-label { color: #555 !important; font-weight: normal !important; font-size: 12px !important;}
     
-    .status-badge { padding: 2px 6px !important; font-size: 10px !important; }
+    /* Simplify Status Badges */
+    .status-badge { 
+      background: transparent !important; 
+      color: #000 !important; 
+      border: none !important; 
+      padding: 0 !important; 
+      font-size: 12px !important;
+    }
+    
+    /* Remove action columns and delete buttons */
     .del-col-btn, .row-actions { display: none !important; }
   }
 </style>
@@ -1002,7 +1028,7 @@ document.getElementById('theadRow').addEventListener('click', async (e) => {
     if(colDef){
       itemToDelete = { type: 'column', id: colId };
       deleteTitle.textContent = 'रकाना काढून टाका';
-      deleteText.innerHTML = `<strong>${escapeHtml(colDef.label)}</strong><br>हा रकाना नक्की काढून टाकायचा आहे का?`;
+      deleteText.innerHTML = `<strong>${escapeHtml(colDef.label)}</strong><br>हा रकाना नक्की काढून टाकायचा মলিন आहे का?`;
       deleteOverlay.style.display = 'flex';
     }
   }
